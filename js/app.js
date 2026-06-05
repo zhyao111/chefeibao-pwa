@@ -4,6 +4,21 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ====== Status Bar Configuration ======
+  const { StatusBar } = window.Capacitor?.Plugins || {};
+  if (StatusBar) {
+    // 检测深色模式
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    StatusBar.setStyle({ style: isDark ? 'DARK' : 'LIGHT' });
+    StatusBar.setBackgroundColor({ color: isDark ? '#1A1A1A' : '#FDF0EB' });
+
+    // 监听深色模式变化
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      StatusBar.setStyle({ style: e.matches ? 'DARK' : 'LIGHT' });
+      StatusBar.setBackgroundColor({ color: e.matches ? '#1A1A1A' : '#FDF0EB' });
+    });
+  }
+
   // ====== DOM Elements ======
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => document.querySelectorAll(sel);
