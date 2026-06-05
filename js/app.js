@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Confirm dialog
   const confirmOverlay = $('#confirmOverlay');
   const confirmMessage = $('#confirmMessage');
+  const confirmViewImg = $('#confirmViewImg');
   const confirmCancel = $('#confirmCancel');
   const confirmOk = $('#confirmOk');
 
@@ -267,6 +268,10 @@ document.addEventListener('DOMContentLoaded', () => {
       lines.map(l => '<div>' + l + '</div>').join('') +
       '</div>';
 
+    // 如果有图片，显示查看图片按钮
+    const hasImg = imgPreview.src && imgPreviewWrap.style.display !== 'none';
+    confirmViewImg.style.display = hasImg ? 'flex' : 'none';
+
     confirmOverlay.style.display = 'flex';
 
     // 绑定确认按钮
@@ -274,15 +279,29 @@ document.addEventListener('DOMContentLoaded', () => {
       confirmOverlay.style.display = 'none';
       confirmOk.removeEventListener('click', onOk);
       confirmCancel.removeEventListener('click', onCancel);
+      confirmViewImg.removeEventListener('click', onViewImg);
       doCalculate(data);
     };
     const onCancel = () => {
       confirmOverlay.style.display = 'none';
       confirmOk.removeEventListener('click', onOk);
       confirmCancel.removeEventListener('click', onCancel);
+      confirmViewImg.removeEventListener('click', onViewImg);
+    };
+    const onViewImg = () => {
+      confirmOverlay.style.display = 'none';
+      confirmOk.removeEventListener('click', onOk);
+      confirmCancel.removeEventListener('click', onCancel);
+      confirmViewImg.removeEventListener('click', onViewImg);
+      // 打开图片查看器
+      updateBaseSize();
+      resetViewer();
+      imgViewerImg.src = imgPreview.src;
+      imgViewerOverlay.style.display = 'block';
     };
     confirmOk.addEventListener('click', onOk);
     confirmCancel.addEventListener('click', onCancel);
+    confirmViewImg.addEventListener('click', onViewImg);
   }
 
   function doCalculate(data) {

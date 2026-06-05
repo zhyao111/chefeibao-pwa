@@ -1610,8 +1610,29 @@ input[type="number"] {
   font-weight: 500;
   color: var(--text);
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   line-height: 1.5;
+}
+
+.confirm-view-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary);
+  background: var(--primary-light);
+  border: 1px solid rgba(200,96,74,0.2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.confirm-view-img:active {
+  background: #F8DDD4;
 }
 
 .confirm-actions {
