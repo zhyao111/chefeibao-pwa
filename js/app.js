@@ -672,6 +672,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       html += '</div>';
 
+      // 查看图片按钮
+      const hasImg = imgPreview.src && imgPreviewWrap.style.display !== 'none';
+      if (hasImg) {
+        html += `<div id="conflictViewImg" style="display:flex;align-items:center;justify-content:center;gap:4px;font-size:13px;font-weight:500;color:var(--primary);background:var(--primary-light);border:1px solid rgba(200,96,74,0.2);border-radius:10px;padding:10px 16px;margin-bottom:12px;cursor:pointer;">`;
+        html += `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 16l5-5 4 4 3-3 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        html += `查看图片`;
+        html += `</div>`;
+      }
+
       // 按钮
       html += '<div style="display:flex;gap:10px;margin-top:14px;">';
       html += '<button class="confirm-btn confirm-cancel" id="conflictCancelAll" style="flex:1;">全部跳过</button>';
@@ -713,6 +722,17 @@ document.addEventListener('DOMContentLoaded', () => {
           first.style.background = '#FDEEE8';
         }
       });
+
+      // 查看图片
+      const conflictViewImg = overlay.querySelector('#conflictViewImg');
+      if (conflictViewImg) {
+        conflictViewImg.addEventListener('click', () => {
+          updateBaseSize();
+          resetViewer();
+          imgViewerImg.src = imgPreview.src;
+          imgViewerOverlay.style.display = 'block';
+        });
+      }
 
       // 全部跳过
       overlay.querySelector('#conflictCancelAll').addEventListener('click', () => {
