@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // OCR expiry dates (populated by recognition)
   const ocrExpiry = { compulsory: '', commercial: '', nonVehicle: '' };
+  let ocrSections = null;
 
   // ====== Recognition Models (Custom Provider System) ======
   const PROVIDERS_KEY = 'chefeibao_providers';
@@ -249,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ocrExpiry.compulsory = '';
     ocrExpiry.commercial = '';
     ocrExpiry.nonVehicle = '';
+    ocrSections = null;
   });
 
   // ====== Image Upload ======
@@ -319,13 +321,19 @@ document.addEventListener('DOMContentLoaded', () => {
   "nonVehicleAmount": 随车非车保费金额(数字),
   "nonVehicleRate": 随车非车保费手续费比例(数字),
   "nonVehicleExpiry": "随车非车保险到期时间，格式如：1月15日",
-  "vehicleTax": 车船税金额(数字)
+  "vehicleTax": 车船税金额(数字),
+  "sections": {
+    "compulsory": { "y_start": 0.1, "y_end": 0.3 },
+    "commercial": { "y_start": 0.3, "y_end": 0.5 },
+    "nonVehicle": { "y_start": 0.5, "y_end": 0.7 }
+  }
 }
 识别规则：
 - 交强险：直接提取保费金额、手续费比例和保险到期时间
 - 商业险：直接提取保费金额、手续费比例和保险到期时间
 - 随车非车保费：图片中除了交强险和商业险以外的所有其他保险项目（如驾意险、座位险、三者险、车损险、玻璃险、划痕险、涉水险、自燃险等），将它们的保费金额全部加总填入 nonVehicleAmount，手续费比例填入 nonVehicleRate，到期时间填入 nonVehicleExpiry
 - 车船税：直接提取
+- sections 字段：返回各保险板块在图片中的垂直位置比例（0-1），y_start 为板块顶部，y_end 为板块底部
 注意：
 - 所有金额单位为元，手续费比例为百分比数字（如 5 表示 5%）
 - 到期时间格式统一为"X月X日"，如"3月20日"
@@ -559,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.nonVehicleRate != null) nonVehicleRate.value = data.nonVehicleRate;
     ocrExpiry.nonVehicle = data.nonVehicleExpiry || '';
     if (data.vehicleTax != null) vehicleTax.value = data.vehicleTax;
+    ocrSections = data.sections || null;
   }
 
   function showOCRError(err) {
@@ -573,6 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
     imgPreviewStatus.textContent = '';
     imgPreviewStatus.className = 'img-preview-status';
     fileInput.value = '';
+    ocrSections = null;
   });
 
   // ====== Image Viewer (WeChat-style) ======
@@ -649,11 +659,57 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('请先上传图片');
       return;
     }
-    updateBaseSize();
-    resetViewer();
-    imgViewerImg.src = imgPreview.src;
-    imgViewerOverlay.style.display = 'block';
+
+    // 如果有识别到的板块位置，裁剪显示
+    if (ocrSections && ocrSections.compulsory && ocrSections.commercial && ocrSections.nonVehicle) {
+      cropAndShowSections();
+    } else {
+      updateBaseSize();
+      resetViewer();
+      imgViewerImg.src = imgPreview.src;
+      imgViewerOverlay.style.display = 'block';
+    }
   });
+
+  function cropAndShowSections() {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 计算三个板块的整体垂直范围
+      const yStart = Math.min(
+        ocrSections.compulsory.y_start || 0,
+        ocrSections.commercial.y_start || 0,
+        ocrSections.nonVehicle.y_start || 0
+      );
+      const yEnd = Math.max(
+        ocrSections.compulsory.y_end || 1,
+        ocrSections.commercial.y_end || 1,
+        ocrSections.nonVehicle.y_end || 1
+      );
+
+      // 添加一些边距
+      const padding = 0.02;
+      const cropYStart = Math.max(0, yStart - padding);
+      const cropYEnd = Math.min(1, yEnd + padding);
+
+      // 裁剪图片
+      const srcY = img.naturalHeight * cropYStart;
+      const srcH = img.naturalHeight * (cropYEnd - cropYStart);
+      canvas.width = img.naturalWidth;
+      canvas.height = srcH;
+
+      ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, 0, img.naturalWidth, srcH);
+
+      // 显示裁剪后的图片
+      updateBaseSize();
+      resetViewer();
+      imgViewerImg.src = canvas.toDataURL('image/jpeg', 0.95);
+      imgViewerOverlay.style.display = 'block';
+    };
+    img.src = imgPreview.src;
+  }
 
   // Close on overlay tap
   imgViewerOverlay.addEventListener('click', () => {
