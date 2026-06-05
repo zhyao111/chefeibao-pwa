@@ -334,8 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasAmount = newData.compulsoryAmount > 0 || newData.commercialAmount > 0 || newData.nonVehicleAmount > 0 || newData.vehicleTax > 0;
     if (!hasAmount) {
       showToast('保费未填写');
-      compulsoryAmount.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => compulsoryAmount.focus(), 300);
       return;
     }
 
