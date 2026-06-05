@@ -103,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // OCR expiry dates (populated by recognition)
   const ocrExpiry = { compulsory: '', commercial: '', nonVehicle: '' };
-  let ocrSections = null;
 
   // ====== Recognition Models (Custom Provider System) ======
   const PROVIDERS_KEY = 'chefeibao_providers';
@@ -250,7 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ocrExpiry.compulsory = '';
     ocrExpiry.commercial = '';
     ocrExpiry.nonVehicle = '';
-    ocrSections = null;
   });
 
   // ====== Image Upload ======
@@ -569,7 +567,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.nonVehicleRate != null) nonVehicleRate.value = data.nonVehicleRate;
     ocrExpiry.nonVehicle = data.nonVehicleExpiry || '';
     if (data.vehicleTax != null) vehicleTax.value = data.vehicleTax;
-    ocrSections = data.sections || null;
   }
 
   function showOCRError(err) {
@@ -584,7 +581,6 @@ document.addEventListener('DOMContentLoaded', () => {
     imgPreviewStatus.textContent = '';
     imgPreviewStatus.className = 'img-preview-status';
     fileInput.value = '';
-    ocrSections = null;
   });
 
   // ====== Image Viewer (WeChat-style) ======
@@ -661,66 +657,11 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('请先上传图片');
       return;
     }
-
-    // 如果有识别到的板块位置，裁剪显示
-    if (ocrSections && ocrSections.compulsory && ocrSections.commercial && ocrSections.nonVehicle) {
-      cropAndShowSections();
-    } else {
-      updateBaseSize();
-      resetViewer();
-      imgViewerImg.src = imgPreview.src;
-      imgViewerOverlay.style.display = 'block';
-    }
+    updateBaseSize();
+    resetViewer();
+    imgViewerImg.src = imgPreview.src;
+    imgViewerOverlay.style.display = 'block';
   });
-
-  function cropAndShowSections() {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-
-      // 收集所有有效板块的垂直范围
-      const sections = [
-        ocrSections.compulsory,
-        ocrSections.commercial,
-        ocrSections.nonVehicle,
-        ocrSections.summary,
-      ].filter(s => s && s.y_start != null && s.y_end != null);
-
-      if (sections.length === 0) {
-        // 没有有效板块，显示完整图片
-        updateBaseSize();
-        resetViewer();
-        imgViewerImg.src = img.src;
-        imgViewerOverlay.style.display = 'block';
-        return;
-      }
-
-      // 计算整体垂直范围
-      const yStart = Math.min(...sections.map(s => s.y_start));
-      const yEnd = Math.max(...sections.map(s => s.y_end));
-
-      // 添加一些边距
-      const padding = 0.02;
-      const cropYStart = Math.max(0, yStart - padding);
-      const cropYEnd = Math.min(1, yEnd + padding);
-
-      // 裁剪图片
-      const srcY = img.naturalHeight * cropYStart;
-      const srcH = img.naturalHeight * (cropYEnd - cropYStart);
-      canvas.width = img.naturalWidth;
-      canvas.height = srcH;
-
-      ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, 0, img.naturalWidth, srcH);
-
-      // 显示裁剪后的图片
-      updateBaseSize();
-      resetViewer();
-      imgViewerImg.src = canvas.toDataURL('image/jpeg', 0.95);
-      imgViewerOverlay.style.display = 'block';
-    };
-    img.src = imgPreview.src;
-  }
 
   // Close on overlay tap
   imgViewerOverlay.addEventListener('click', () => {
