@@ -1504,19 +1504,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const results = calculate(data);
     const text = formatPlanText(data, results);
 
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: '车险报价单', text: text });
-      } catch (e) {
-        if (e.name !== 'AbortError') {
-          copyToClipboard(text);
-          showToast('已复制到剪贴板');
-        }
+    // 尝试使用 Capacitor Share 插件
+    try {
+      const { Share } = window.Capacitor?.Plugins || {};
+      if (Share) {
+        await Share.share({ title: '车险报价单', text: text, dialogTitle: '分享报价单' });
+        return;
       }
-    } else {
-      copyToClipboard(text);
-      showToast('已复制到剪贴板，可手动粘贴分享');
+    } catch (e) {
+      console.log('Capacitor Share failed:', e);
     }
+
+    // 尝试 Web Share API
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: '车险报价单', text: text });
+        return;
+      }
+    } catch (e) {
+      if (e.name === 'AbortError') return; // 用户取消
+      console.log('Web Share failed:', e);
+    }
+
+    // 兜底：复制到剪贴板
+    copyToClipboard(text);
+    showToast('已复制到剪贴板');
+  });
   });
 
   // ====== Clear All Records ======
@@ -2085,35 +2098,6 @@ document.addEventListener('DOMContentLoaded', () => {
     cfg.models.push(id);
     saveDualConfig(cfg);
     renderDualConfigUI();
-  });
-
-  // 预览冲突弹窗
-  const btnPreviewConflict = $('#btnPreviewConflict');
-  btnPreviewConflict.addEventListener('click', () => {
-    const mockResults = [
-      {
-        providerName: '小米',
-        data: {
-          company: '中国人保', plate: '粤A12345',
-          compulsoryAmount: 950, compulsoryExpiry: '2025年9月15日',
-          commercialAmount: 3500, commercialExpiry: '2025年12月20日',
-          nonVehicleAmount: 800, nonVehicleExpiry: '2025年11月10日',
-          vehicleTax: 420,
-        }
-      },
-      {
-        providerName: '千问',
-        data: {
-          company: '人保财险', plate: '粤A12345',
-          compulsoryAmount: 950.5, compulsoryExpiry: '2025年9月15日',
-          commercialAmount: 3480, commercialExpiry: '2025年12月20日',
-          nonVehicleAmount: 850, nonVehicleExpiry: '2025年11月10日',
-          vehicleTax: 420,
-        }
-      }
-    ];
-    const mockConflicts = ['company', 'compulsoryAmount', 'commercialAmount', 'nonVehicleAmount'];
-    showConflictDialog(mockConflicts, mockResults);
   });
 
   // 初始化 badge
