@@ -297,9 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lines.push(line);
     }
     if (data.nonVehicleRate > 0) {
-      let line = `随车非车：保费 ${data.nonVehicleAmount} 元，费率 ${data.nonVehicleRate}%`;
-      if (data.nonVehicleExpiry) line += `，到期 ${data.nonVehicleExpiry}`;
-      lines.push(line);
+      lines.push(`随车非车：保费 ${data.nonVehicleAmount} 元，费率 ${data.nonVehicleRate}%`);
     }
     if (data.vehicleTax > 0) {
       lines.push(`车船税：${data.vehicleTax} 元`);
