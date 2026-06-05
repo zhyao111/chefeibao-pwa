@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const placeholder = item.el.placeholder || '';
       html += `<div style="margin-bottom:12px;">`;
       html += `<label style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:block;">${item.label}</label>`;
-      html += `<input type="${inputType}" class="missing-field-input" data-idx="${i}" placeholder="${placeholder}" step="0.01" min="0" style="width:100%;height:42px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:14px;outline:none;box-sizing:border-box;">`;
+      html += `<input type="${inputType}" class="missing-field-input" data-idx="${i}" placeholder="${placeholder}" step="0.01" min="0" style="width:100%;height:42px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:14px;color:var(--text);outline:none;box-sizing:border-box;">`;
       html += '</div>';
     });
 
