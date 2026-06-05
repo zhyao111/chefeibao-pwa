@@ -65,7 +65,7 @@ body {
 }
 
 .header-title {
-  font-size: clamp(18px, 4vw, 24px);
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text);
 }
@@ -106,7 +106,7 @@ body {
 }
 
 .card-header h3 {
-  font-size: clamp(13px, 2.6vw, 16px);
+  font-size: 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -271,7 +271,7 @@ body {
 
 /* ========== View Image Button ========== */
 .btn-view-img {
-  font-size: clamp(11px, 2.2vw, 12px);
+  font-size: 0.75rem;
   color: var(--primary);
   background: rgba(200,96,74,0.08);
   border: 1px solid rgba(200,96,74,0.15);
@@ -347,7 +347,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0 14px;
-  font-size: clamp(13px, 2.6vw, 15px);
+  font-size: 0.95rem;
   color: var(--text);
   outline: none;
   transition: border-color 0.2s;
@@ -387,7 +387,7 @@ input[type="number"] {
 
 .input-group label {
   display: block;
-  font-size: clamp(11px, 2.2vw, 12px);
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
@@ -419,7 +419,7 @@ input[type="number"] {
 }
 
 .expiry-row label {
-  font-size: clamp(11px, 2.2vw, 12px);
+  font-size: 0.75rem;
   color: var(--text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
@@ -441,7 +441,7 @@ input[type="number"] {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   padding: 0 4px;
-  font-size: clamp(12px, 2.4vw, 14px);
+  font-size: 0.85rem;
   text-align: center;
   color: var(--text);
   outline: none;
@@ -455,11 +455,11 @@ input[type="number"] {
 
 .input-expiry::placeholder {
   color: var(--text-light);
-  font-size: clamp(11px, 2.2vw, 12px);
+  font-size: 0.75rem;
 }
 
 .expiry-sep {
-  font-size: clamp(11px, 2.2vw, 13px);
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
@@ -535,7 +535,7 @@ input[type="number"] {
 .btn {
   height: clamp(44px, 9vw, 52px);
   border-radius: 25px;
-  font-size: clamp(13px, 2.6vw, 16px);
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -593,7 +593,7 @@ input[type="number"] {
 }
 
 .result-title {
-  font-size: clamp(14px, 2.8vw, 17px);
+  font-size: 1.05rem;
   font-weight: 700;
   margin: 0;
 }
@@ -639,7 +639,7 @@ input[type="number"] {
 }
 
 .highlight-value {
-  font-size: clamp(24px, 6vw, 36px);
+  font-size: 2.25rem;
   font-weight: 700;
   color: var(--primary);
   letter-spacing: -0.5px;
@@ -712,7 +712,7 @@ input[type="number"] {
 
 .settings-menu-label {
   flex: 1;
-  font-size: clamp(13px, 2.6vw, 16px);
+  font-size: 1rem;
   font-weight: 500;
   color: var(--text);
 }
@@ -1119,7 +1119,7 @@ input[type="number"] {
 }
 
 .modal-title {
-  font-size: clamp(15px, 3vw, 18px);
+  font-size: 1.1rem;
   font-weight: 700;
 }
 
@@ -1193,7 +1193,7 @@ input[type="number"] {
 
 .form-label {
   display: block;
-  font-size: clamp(12px, 2.4vw, 14px);
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 6px;
@@ -1647,14 +1647,14 @@ input[type="number"] {
 }
 
 .empty-state-settings .empty-title {
-  font-size: clamp(15px, 3vw, 17px);
+  font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .empty-state-settings .empty-subtitle {
-  font-size: clamp(12px, 2.4vw, 14px);
+  font-size: 0.85rem;
   color: var(--text-light);
   margin-bottom: 24px;
 }
@@ -1669,7 +1669,7 @@ input[type="number"] {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: clamp(12px, 2.4vw, 13px);
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
@@ -1975,7 +1975,7 @@ input[type="number"] {
 }
 
 .nav-label {
-  font-size: clamp(10px, 2vw, 12px);
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
@@ -2065,7 +2065,7 @@ input[type="number"] {
 /* ========== Confirm Dialog Content ========== */
 .confirm-dialog-content {
   text-align: left;
-  font-size: clamp(12px, 2.4vw, 14px);
+  font-size: 0.85rem;
   line-height: 1.5;
 }
 
@@ -2073,7 +2073,7 @@ input[type="number"] {
   font-weight: 600;
   margin-bottom: 12px;
   color: var(--text);
-  font-size: clamp(13px, 2.6vw, 15px);
+  font-size: 0.95rem;
 }
 
 .confirm-card {
@@ -2108,7 +2108,7 @@ input[type="number"] {
 .confirm-card-title {
   font-weight: 600;
   margin-bottom: 6px;
-  font-size: clamp(13px, 2.6vw, 15px);
+  font-size: 0.95rem;
 }
 
 .confirm-row {
@@ -2120,7 +2120,7 @@ input[type="number"] {
 
 .confirm-label {
   color: var(--text-secondary);
-  font-size: clamp(11px, 2.2vw, 13px);
+  font-size: 0.8rem;
 }
 
 .confirm-value {
@@ -2128,7 +2128,7 @@ input[type="number"] {
   color: var(--text);
   white-space: nowrap;
   text-align: right;
-  font-size: clamp(12px, 2.4vw, 14px);
+  font-size: 0.85rem;
 }
 
 /* ========== Dark Mode ========== */
