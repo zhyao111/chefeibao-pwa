@@ -547,12 +547,19 @@ document.addEventListener('DOMContentLoaded', () => {
         merged = result.data;
         allConflicts = [...new Set([...allConflicts, ...result.conflictFields])];
       }
+
+      // 有冲突字段：弹窗让用户选择
+      if (allConflicts.length > 0) {
+        const chosen = await showConflictDialog(allConflicts, succeeded);
+        if (chosen) merged = chosen;
+      }
+
       const names = succeeded.map(r => `${r.providerName}·${r.modelName}`).join(' vs ');
       imgPreviewStatus.textContent = `${names} — 多重识别完成`;
       imgPreviewStatus.className = 'img-preview-status';
-      applyOCRResult(merged, allConflicts);
+      applyOCRResult(merged);
       showToast(allConflicts.length > 0
-        ? `识别完成，${allConflicts.length} 个字段有差异已标红`
+        ? `已选择您确认的数据`
         : '多重识别一致，已自动填入数据');
     } catch (err) {
       console.error('OCR error:', err);
@@ -598,6 +605,128 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return { data: merged, conflictCount: conflictFields.length, conflictFields };
+  }
+
+  // ---- 冲突选择弹窗 ----
+  const FIELD_LABELS = {
+    company: '保险公司',
+    plate: '车牌号',
+    compulsoryAmount: '交强险保费',
+    compulsoryRate: '交强险费率',
+    compulsoryExpiry: '交强险到期',
+    commercialAmount: '商业险保费',
+    commercialRate: '商业险费率',
+    commercialExpiry: '商业险到期',
+    nonVehicleAmount: '随车非车保费',
+    nonVehicleRate: '随车非车费率',
+    nonVehicleExpiry: '随车非车到期',
+    vehicleTax: '车船税',
+  };
+
+  function showConflictDialog(conflictFields, succeeded) {
+    return new Promise((resolve) => {
+      // 创建弹窗
+      const overlay = document.createElement('div');
+      overlay.className = 'confirm-overlay';
+      overlay.style.zIndex = '1100';
+
+      const dialog = document.createElement('div');
+      dialog.className = 'confirm-dialog';
+      dialog.style.maxWidth = '360px';
+      dialog.style.maxHeight = '80vh';
+      dialog.style.overflow = 'auto';
+
+      const models = succeeded.map(r => `${r.providerName}·${r.modelName}`);
+
+      let html = '<div style="text-align:left;font-size:14px;">';
+      html += '<div style="font-weight:600;margin-bottom:10px;color:#E74C3C;">⚠️ 以下字段两个模型识别结果不一致</div>';
+      html += '<div style="font-size:12px;color:#999;margin-bottom:12px;">请点击您认为正确的值</div>';
+
+      conflictFields.forEach((f, idx) => {
+        const label = FIELD_LABELS[f] || f;
+        const values = succeeded.map(r => r.data[f]);
+
+        html += `<div style="background:#FFF5F5;border-radius:10px;padding:10px 12px;margin-bottom:8px;">`;
+        html += `<div style="font-weight:600;color:#E74C3C;margin-bottom:6px;font-size:13px;">${label}</div>`;
+
+        values.forEach((val, vi) => {
+          const displayVal = (val === 0 || val === '') ? '未识别到' : val;
+          html += `<div class="conflict-option" data-field="${f}" data-value="${val}" data-idx="${idx}" `;
+          html += `style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;margin-bottom:4px;background:#fff;border-radius:8px;border:1.5px solid #F5E6E0;cursor:pointer;transition:all 0.15s;">`;
+          html += `<span style="color:#999;font-size:12px;">${models[vi]}</span>`;
+          html += `<span style="font-weight:600;">${displayVal}</span>`;
+          html += `</div>`;
+        });
+
+        html += '</div>';
+      });
+
+      html += '</div>';
+
+      // 按钮
+      html += '<div style="display:flex;gap:10px;margin-top:14px;">';
+      html += '<button class="confirm-btn confirm-cancel" id="conflictCancelAll" style="flex:1;">全部跳过</button>';
+      html += '<button class="confirm-btn confirm-ok" id="conflictConfirm" style="flex:1;">确认选择</button>';
+      html += '</div>';
+
+      dialog.innerHTML = html;
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+
+      // 记录用户选择
+      const choices = {};
+      conflictFields.forEach(f => {
+        choices[f] = 0; // 默认选第一个
+      });
+
+      // 点击选择
+      overlay.querySelectorAll('.conflict-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const f = opt.dataset.field;
+          const v = opt.dataset.value;
+          choices[f] = v;
+
+          // 高亮选中的，取消其他
+          overlay.querySelectorAll(`.conflict-option[data-field="${f}"]`).forEach(o => {
+            o.style.borderColor = '#F5E6E0';
+            o.style.background = '#fff';
+          });
+          opt.style.borderColor = '#C8604A';
+          opt.style.background = '#FDEEE8';
+        });
+      });
+
+      // 默认选中每个字段的第一个选项
+      conflictFields.forEach(f => {
+        const first = overlay.querySelector(`.conflict-option[data-field="${f}"]`);
+        if (first) {
+          first.style.borderColor = '#C8604A';
+          first.style.background = '#FDEEE8';
+        }
+      });
+
+      // 全部跳过
+      overlay.querySelector('#conflictCancelAll').addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        resolve(null);
+      });
+
+      // 确认选择
+      overlay.querySelector('#conflictConfirm').addEventListener('click', () => {
+        document.body.removeChild(overlay);
+        // 根据用户选择构建最终数据
+        const finalData = { ...succeeded[0].data };
+        conflictFields.forEach(f => {
+          const chosenValue = choices[f];
+          succeeded.forEach(r => {
+            if (String(r.data[f]) === String(chosenValue)) {
+              finalData[f] = r.data[f];
+            }
+          });
+        });
+        resolve(finalData);
+      });
+    });
   }
 
   async function tryWithFailover(provider, file, base64, dataUrl) {
@@ -858,14 +987,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function applyOCRResult(data, conflictFields) {
-    // 先清除所有冲突标记
-    const allInputs = [insuranceCompany, plateNumber,
-      compulsoryAmount, compulsoryExpiryYear, compulsoryExpiryMonth, compulsoryExpiryDay,
-      commercialAmount, commercialExpiryYear, commercialExpiryMonth, commercialExpiryDay,
-      nonVehicleAmount, vehicleTax];
-    allInputs.forEach(el => el.classList.remove('input-conflict'));
-
+  function applyOCRResult(data) {
     resultSection.style.display = 'none';
     insuranceCompany.value = data.company || '';
     plateNumber.value = data.plate || '';
@@ -881,32 +1003,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.nonVehicleRate != null) nonVehicleRate.value = data.nonVehicleRate;
     ocrExpiry.nonVehicle = data.nonVehicleExpiry || '';
     if (data.vehicleTax != null) vehicleTax.value = data.vehicleTax;
-
-    // 标红有冲突的字段
-    if (conflictFields && conflictFields.length > 0) {
-      const conflictMap = {
-        'company': insuranceCompany,
-        'plate': plateNumber,
-        'compulsoryAmount': compulsoryAmount,
-        'compulsoryRate': compulsoryRate,
-        'compulsoryExpiry': [compulsoryExpiryYear, compulsoryExpiryMonth, compulsoryExpiryDay],
-        'commercialAmount': commercialAmount,
-        'commercialRate': commercialRate,
-        'commercialExpiry': [commercialExpiryYear, commercialExpiryMonth, commercialExpiryDay],
-        'nonVehicleAmount': nonVehicleAmount,
-        'nonVehicleRate': nonVehicleRate,
-        'nonVehicleExpiry': null,
-        'vehicleTax': vehicleTax,
-      };
-      conflictFields.forEach(f => {
-        const el = conflictMap[f];
-        if (Array.isArray(el)) {
-          el.forEach(e => e && e.classList.add('input-conflict'));
-        } else if (el) {
-          el.classList.add('input-conflict');
-        }
-      });
-    }
   }
 
   function parseExpiryToInputs(expiryStr, yearEl, monthEl, dayEl) {
