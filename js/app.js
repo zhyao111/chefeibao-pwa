@@ -2187,16 +2187,30 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 填充可用模型下拉
+    // 填充可用模型下拉（排除已添加的模型）
     selectDualProvider.innerHTML = '<option value="">选择供应商和模型...</option>';
+    const addedModels = new Set(cfg.models.map(m => `${m.providerId}|||${m.model}`));
+    let hasAvailable = false;
+
     providers.forEach((p) => {
       (p.models || []).forEach((model) => {
+        const key = `${p.id}|||${model}`;
+        if (addedModels.has(key)) return; // 已添加的不显示
+        hasAvailable = true;
         const opt = document.createElement('option');
-        opt.value = `${p.id}|||${model}`;
+        opt.value = key;
         opt.textContent = `${p.name || p.id} · ${model}`;
         selectDualProvider.appendChild(opt);
       });
     });
+
+    if (!hasAvailable) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '暂无可选择的供应商和模型';
+      opt.disabled = true;
+      selectDualProvider.appendChild(opt);
+    }
   }
 
   chkDualRecognize.addEventListener('change', () => {
