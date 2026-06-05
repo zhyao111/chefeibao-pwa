@@ -22,7 +22,7 @@
   --radius-sm: 10px;
   --nav-height: clamp(52px, 10vw, 64px);
   --header-height: clamp(48px, 9vw, 60px);
-  --font-base: clamp(14px, 2.8vw, 18px);
+  --font-base: 16px;
   --font-scale: 1;
 }
 
