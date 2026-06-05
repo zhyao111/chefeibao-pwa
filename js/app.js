@@ -1563,7 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (data.vehicleTax > 0) {
       premium += data.vehicleTax;
-      lines.push(`车船税：${data.vehicleTax}元。`);
+      lines.push(`车船税：${data.vehicleTax}元`);
     }
 
     premium = round2(premium);
