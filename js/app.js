@@ -55,6 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const emptyStateSettings = $('#emptyStateSettings');
   const recordListSettings = $('#recordListSettings');
   const btnClearAllRecords = $('#btnClearAllRecords');
+  const recordSearchWrap = $('#recordSearchWrap');
+  const recordSearchInput = $('#recordSearchInput');
 
   // Settings sub-pages
   const settingsMenu = $('#settingsMenu');
@@ -533,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // 如果只有一个成功，直接用
       if (succeeded.length === 1) {
         const r = succeeded[0];
-        imgPreviewStatus.textContent = `${r.providerName} · ${r.modelName} — 识别完成（仅单模型）`;
+        imgPreviewStatus.textContent = '识别完成';
         imgPreviewStatus.className = 'img-preview-status';
         applyOCRResult(r.data);
         showToast('识别完成，已自动填入数据');
@@ -566,8 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      const names = succeeded.map(r => `${r.providerName}·${r.modelName}`).join(' vs ');
-      imgPreviewStatus.textContent = `${names} — 多重识别完成`;
+      imgPreviewStatus.textContent = '多重识别完成';
       imgPreviewStatus.className = 'img-preview-status';
       applyOCRResult(merged);
       showToast(allConflicts.length > 0
@@ -1364,9 +1365,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (records.length === 0) return;
     showConfirm('确定要清空全部历史记录吗？此操作不可撤销。', () => {
       localStorage.removeItem('chefeibao_records');
+      recordSearchInput.value = '';
       renderRecords();
       showToast('已清空全部记录');
     });
+  });
+
+  // ====== Record Search ======
+  recordSearchInput.addEventListener('input', () => {
+    renderRecords();
   });
 
   // ====== Confirm Dialog ======
@@ -1536,7 +1543,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function saveRecord(record) {
     const records = getRecords();
-    records.unshift(record); // newest first
+    // 如果车牌和保险公司一样，覆盖原来的记录
+    const existIdx = records.findIndex(r =>
+      r.plate === record.plate && r.company === record.company
+    );
+    if (existIdx >= 0) {
+      records[existIdx] = record;
+    } else {
+      records.unshift(record); // newest first
+    }
     localStorage.setItem('chefeibao_records', JSON.stringify(records));
   }
 
@@ -1552,10 +1567,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderRecords() {
     const records = getRecords();
 
-    // Show/hide clear all button
+    // Show/hide clear all button and search
     btnClearAllRecords.style.display = records.length > 0 ? 'block' : 'none';
+    recordSearchWrap.style.display = records.length > 0 ? 'block' : 'none';
 
-    if (records.length === 0) {
+    // 搜索过滤
+    const searchTerm = recordSearchInput.value.trim().toLowerCase();
+    const filtered = searchTerm
+      ? records.filter(r => (r.plate || '').toLowerCase().includes(searchTerm))
+      : records;
+
+    if (filtered.length === 0) {
       emptyStateSettings.style.display = 'flex';
       recordListSettings.innerHTML = '';
       return;
@@ -1564,9 +1586,10 @@ document.addEventListener('DOMContentLoaded', () => {
     emptyStateSettings.style.display = 'none';
     recordListSettings.innerHTML = '';
 
-    records.forEach((r) => {
+    filtered.forEach((r) => {
       const item = document.createElement('div');
       item.className = 'record-item';
+      item.dataset.recordId = r.id;
       item.innerHTML = `
         <button class="record-delete" data-id="${r.id}" title="删除">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -1593,6 +1616,57 @@ document.addEventListener('DOMContentLoaded', () => {
         deleteRecord(id);
       });
     });
+
+    // 点击记录恢复数据并跳转到计算界面
+    recordListSettings.querySelectorAll('.record-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        if (e.target.closest('.record-delete')) return;
+        const id = parseInt(item.dataset.recordId, 10);
+        const record = records.find(r => r.id === id);
+        if (!record) return;
+        restoreRecordToForm(record);
+      });
+    });
+  }
+
+  function restoreRecordToForm(record) {
+    // 填入数据
+    insuranceCompany.value = record.company || '';
+    plateNumber.value = record.plate || '';
+    compulsoryAmount.value = record.compulsoryAmount || '';
+    compulsoryRate.value = record.compulsoryRate || '';
+    commercialAmount.value = record.commercialAmount || '';
+    commercialRate.value = record.commercialRate || '';
+    nonVehicleAmount.value = record.nonVehicleAmount || '';
+    nonVehicleRate.value = record.nonVehicleRate || '';
+    vehicleTax.value = record.vehicleTax || '';
+    addInvest.value = record.addInvest || '';
+
+    // 恢复到期时间
+    if (record.compulsoryExpiry) parseExpiryToInputs(record.compulsoryExpiry, compulsoryExpiryYear, compulsoryExpiryMonth, compulsoryExpiryDay);
+    if (record.commercialExpiry) parseExpiryToInputs(record.commercialExpiry, commercialExpiryYear, commercialExpiryMonth, commercialExpiryDay);
+
+    // 恢复快速填写手续费比例
+    if (record.compulsoryRate && record.commercialRate && record.nonVehicleRate) {
+      quickRate.value = `${record.compulsoryRate}/${record.commercialRate}/${record.nonVehicleRate}`;
+    }
+
+    // 切换到计算 tab
+    navItems.forEach(item => item.classList.remove('active'));
+    document.querySelector('[data-tab="tabCalc"]').classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById('tabCalc').classList.add('active');
+
+    // 重新计算并显示结果
+    const data = getFormData();
+    if (data.compulsoryRate > 0 || data.commercialRate > 0 || data.nonVehicleRate > 0) {
+      const results = calculate(data);
+      displayResults(results);
+      resultSection.style.display = 'block';
+    }
+
+    hideSubpages();
+    showToast('已恢复记录数据');
   }
 
   function escapeHtml(str) {
