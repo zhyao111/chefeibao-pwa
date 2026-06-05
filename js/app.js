@@ -1852,15 +1852,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.plate) lines.push(`车牌号：${data.plate}`);
 
     let premium = 0;
-    if (data.compulsoryRate > 0) {
+    if (data.compulsoryAmount > 0 && data.compulsoryRate > 0) {
       premium += data.compulsoryAmount;
       lines.push(`交强险保费：${data.compulsoryAmount}元，到期时间：${data.compulsoryExpiry || '未知'}`);
     }
-    if (data.commercialRate > 0) {
+    if (data.commercialAmount > 0 && data.commercialRate > 0) {
       premium += data.commercialAmount;
       lines.push(`商业险保费：${data.commercialAmount}元，到期时间：${data.commercialExpiry || '未知'}`);
     }
-    if (data.nonVehicleRate > 0) {
+    if (data.nonVehicleAmount > 0 && data.nonVehicleRate > 0) {
       premium += data.nonVehicleAmount;
       lines.push(`随车非车保费：${data.nonVehicleAmount}元`);
     }
@@ -1870,9 +1870,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     premium = round2(premium);
-    lines.push(`保费合计：${premium}元`);
-    lines.push(`费用：${formatMoney(results.afterTax)}`);
-    lines.push(`实付为：${formatMoney(premium - results.afterTax)}`);
+    if (premium > 0) lines.push(`保费合计：${premium}元`);
+    if (results.afterTax > 0) {
+      lines.push(`费用：${formatMoney(results.afterTax)}`);
+      lines.push(`实付为：${formatMoney(premium - results.afterTax)}`);
+    }
     return lines.join('\n');
   }
 
