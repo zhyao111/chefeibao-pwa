@@ -262,8 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
     dialog.style.maxWidth = '300px';
 
     let html = '<div style="text-align:left;">';
-    html += `<div style="font-weight:600;margin-bottom:12px;font-size:15px;">修改${label}</div>`;
-    html += `<input type="number" id="rateEditInput" class="form-input" value="" placeholder="输入费率" step="0.01" min="0" style="width:100%;height:44px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:16px;outline:none;">`;
+    html += `<div style="font-weight:600;margin-bottom:12px;font-size:1rem;">修改${label}</div>`;
+    html += `<input type="number" id="rateEditInput" class="form-input" value="" placeholder="输入费率" step="0.01" min="0" style="width:100%;height:44px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:1rem;outline:none;">`;
     html += '<div style="display:flex;gap:10px;margin-top:16px;">';
     html += '<button class="confirm-btn confirm-cancel" id="rateEditCancel" style="flex:1;">取消</button>';
     html += '<button class="confirm-btn confirm-ok" id="rateEditOk" style="flex:1;">确定</button>';
@@ -378,14 +378,14 @@ document.addEventListener('DOMContentLoaded', () => {
     dialog.style.overflow = 'auto';
 
     let html = '<div style="text-align:left;">';
-    html += '<div style="font-weight:600;margin-bottom:12px;font-size:15px;color:#E74C3C;">⚠️ 请填写以下必填项</div>';
+    html += '<div style="font-weight:600;margin-bottom:12px;font-size:1rem;color:#E74C3C;">⚠️ 请填写以下必填项</div>';
 
     missing.forEach((item, i) => {
       const inputType = item.el.type === 'number' ? 'number' : 'text';
       const placeholder = item.el.placeholder || '';
       html += `<div style="margin-bottom:12px;">`;
-      html += `<label style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:block;">${item.label}</label>`;
-      html += `<input type="${inputType}" class="missing-field-input" data-idx="${i}" placeholder="${placeholder}" step="0.01" min="0" style="width:100%;height:42px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:14px;color:var(--text);outline:none;box-sizing:border-box;">`;
+      html += `<label style="font-size:0.8rem;font-weight:500;color:var(--text);margin-bottom:6px;display:block;">${item.label}</label>`;
+      html += `<input type="${inputType}" class="missing-field-input" data-idx="${i}" placeholder="${placeholder}" step="0.01" min="0" style="width:100%;height:42px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:0.85rem;color:var(--text);outline:none;box-sizing:border-box;">`;
       html += '</div>';
     });
 
@@ -433,19 +433,19 @@ document.addEventListener('DOMContentLoaded', () => {
     dialog.style.maxWidth = '320px';
 
     let html = '<div style="text-align:left;">';
-    html += '<div style="font-weight:600;margin-bottom:12px;font-size:15px;color:#E74C3C;">⚠️ 请填写到期时间</div>';
-    html += '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">以下保险有保费但缺少到期时间：</div>';
+    html += '<div style="font-weight:600;margin-bottom:12px;font-size:1rem;color:#E74C3C;">⚠️ 请填写到期时间</div>';
+    html += '<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">以下保险有保费但缺少到期时间：</div>';
 
     missingExpiry.forEach((item, i) => {
       html += `<div style="margin-bottom:12px;">`;
-      html += `<label style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:block;">${item.label}</label>`;
+      html += `<label style="font-size:0.8rem;font-weight:500;color:var(--text);margin-bottom:6px;display:block;">${item.label}</label>`;
       html += `<div class="expiry-inputs" style="gap:6px;">`;
-      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="year" placeholder="年" min="2020" max="2099" style="flex:1;min-width:50px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:clamp(12px,2.4vw,14px);color:var(--text);outline:none;">`;
-      html += `<span style="font-size:13px;color:var(--text-secondary);">年</span>`;
-      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="month" placeholder="月" min="1" max="12" style="flex:1;min-width:40px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:clamp(12px,2.4vw,14px);color:var(--text);outline:none;">`;
-      html += `<span style="font-size:13px;color:var(--text-secondary);">月</span>`;
-      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="day" placeholder="日" min="1" max="31" style="flex:1;min-width:40px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:clamp(12px,2.4vw,14px);color:var(--text);outline:none;">`;
-      html += `<span style="font-size:13px;color:var(--text-secondary);">日</span>`;
+      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="year" placeholder="年" min="2020" max="2099" style="flex:1;min-width:50px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:0.85rem;color:var(--text);outline:none;">`;
+      html += `<span style="font-size:0.8rem;color:var(--text-secondary);">年</span>`;
+      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="month" placeholder="月" min="1" max="12" style="flex:1;min-width:40px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:0.85rem;color:var(--text);outline:none;">`;
+      html += `<span style="font-size:0.8rem;color:var(--text-secondary);">月</span>`;
+      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="day" placeholder="日" min="1" max="31" style="flex:1;min-width:40px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:0.85rem;color:var(--text);outline:none;">`;
+      html += `<span style="font-size:0.8rem;color:var(--text-secondary);">日</span>`;
       html += `</div>`;
       html += '</div>';
     });
