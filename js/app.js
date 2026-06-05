@@ -333,7 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 检查是否有保费数据
     const hasAmount = newData.compulsoryAmount > 0 || newData.commercialAmount > 0 || newData.nonVehicleAmount > 0 || newData.vehicleTax > 0;
     if (!hasAmount) {
-      showToast('请填写保费金额');
+      // 弹窗让用户填写保费
+      const premiumMissing = [
+        { label: '交强险保费', el: compulsoryAmount },
+        { label: '商业险保费', el: commercialAmount },
+        { label: '随车非车保费', el: nonVehicleAmount },
+        { label: '车船税', el: vehicleTax },
+      ];
+      showMissingFieldsDialog(premiumMissing);
       return;
     }
 
