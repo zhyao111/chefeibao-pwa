@@ -614,17 +614,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // 获取配置的模型对应的提供商
+      // 获取配置的模型对应的提供商和模型
       const providers = getProviders();
-      const providersToUse = dualCfg.models
-        .map(id => providers.find(p => p.id === id))
-        .filter(p => p && p.models && p.models.length > 0);
+      const modelsToUse = dualCfg.models
+        .map(item => {
+          const p = providers.find(x => x.id === item.providerId);
+          return p ? { provider: p, model: item.model } : null;
+        })
+        .filter(Boolean);
 
-      if (providersToUse.length <= 1) {
+      if (modelsToUse.length <= 1) {
         // 配置的模型不够，降级为单模型
-        const p = providersToUse[0] || provider;
+        const p = modelsToUse[0]?.provider || provider;
         const result = await tryWithFailover(p, file, base64, dataUrl);
-        imgPreviewStatus.textContent = `${result.providerName} · ${result.modelName} — 识别完成`;
+        imgPreviewStatus.textContent = '识别完成';
         imgPreviewStatus.className = 'img-preview-status';
         applyOCRResult(result.data);
         showToast('识别完成，已自动填入数据');
@@ -632,14 +635,18 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // 多个模型：同时识别，显示进度
-      const total = providersToUse.length;
+      const total = modelsToUse.length;
       let completed = 0;
       imgPreviewStatus.textContent = `正在识别 (0/${total})...`;
       imgPreviewStatus.className = 'img-preview-status loading';
 
       const results = await Promise.allSettled(
-        providersToUse.map(async (p) => {
+        modelsToUse.map(async ({ provider: p, model }) => {
+          // 临时设置选中的模型
+          const originalModel = p.selectedModel;
+          p.selectedModel = model;
           const result = await tryWithFailover(p, file, base64, dataUrl);
+          p.selectedModel = originalModel;
           completed++;
           imgPreviewStatus.textContent = `正在识别 (${completed}/${total})...`;
           return result;
@@ -2043,38 +2050,38 @@ document.addEventListener('DOMContentLoaded', () => {
       dualModelListEl.innerHTML = '<p class="failover-queue-empty">暂无模型，请添加</p>';
     } else {
       dualModelListEl.innerHTML = '';
-      cfg.models.forEach((id, i) => {
-        const p = providers.find((x) => x.id === id);
+      cfg.models.forEach((item, i) => {
+        const p = providers.find((x) => x.id === item.providerId);
         if (!p) return;
-        const model = p.selectedModel || (p.models && p.models[0]) || '';
-        const item = document.createElement('div');
-        item.className = 'failover-queue-item';
-        item.innerHTML = `
+        const model = item.model || p.selectedModel || (p.models && p.models[0]) || '';
+        const queueItem = document.createElement('div');
+        queueItem.className = 'failover-queue-item';
+        queueItem.innerHTML = `
           <span class="failover-queue-order">${i + 1}</span>
           <div class="failover-queue-info">
             <div class="failover-queue-name">${escapeHtml(p.name || p.id)}</div>
             <div class="failover-queue-model">${escapeHtml(model)}</div>
           </div>
-          <button class="failover-queue-remove" data-id="${id}" title="移除">&times;</button>
+          <button class="failover-queue-remove" data-idx="${i}" title="移除">&times;</button>
         `;
-        item.querySelector('.failover-queue-remove').addEventListener('click', () => {
-          const newModels = cfg.models.filter((x) => x !== id);
-          saveDualConfig({ ...cfg, models: newModels });
+        queueItem.querySelector('.failover-queue-remove').addEventListener('click', () => {
+          cfg.models.splice(i, 1);
+          saveDualConfig(cfg);
           renderDualConfigUI();
         });
-        dualModelListEl.appendChild(item);
+        dualModelListEl.appendChild(queueItem);
       });
     }
 
     // 填充可用模型下拉
-    selectDualProvider.innerHTML = '<option value="">选择模型...</option>';
+    selectDualProvider.innerHTML = '<option value="">选择供应商和模型...</option>';
     providers.forEach((p) => {
-      if (cfg.models.includes(p.id)) return;
-      const model = p.selectedModel || (p.models && p.models[0]) || '';
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `${p.name || p.id} · ${model}`;
-      selectDualProvider.appendChild(opt);
+      (p.models || []).forEach((model) => {
+        const opt = document.createElement('option');
+        opt.value = `${p.id}|||${model}`;
+        opt.textContent = `${p.name || p.id} · ${model}`;
+        selectDualProvider.appendChild(opt);
+      });
     });
   }
 
@@ -2087,15 +2094,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnAddDualModel.addEventListener('click', () => {
-    const id = selectDualProvider.value;
-    if (!id) { showToast('请选择模型'); return; }
+    const val = selectDualProvider.value;
+    if (!val) { showToast('请选择供应商和模型'); return; }
+    const [providerId, model] = val.split('|||');
     const cfg = getDualConfig();
     const maxCount = cfg.count || 2;
     if (cfg.models.length >= maxCount) {
       showToast(`最多添加 ${maxCount} 个模型`);
       return;
     }
-    cfg.models.push(id);
+    cfg.models.push({ providerId, model });
     saveDualConfig(cfg);
     renderDualConfigUI();
   });
