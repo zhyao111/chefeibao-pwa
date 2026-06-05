@@ -2196,7 +2196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const isDual = dualInfoMap.has(p.id);
       const dualModels = dualInfoMap.get(p.id) || [];
       const card = document.createElement('div');
-      card.className = 'provider-card' + (isActive ? ' active' : '') + (isDual ? ' dual-active' : '');
+      card.className = 'provider-card' + (!dualEnabled && isActive ? ' active' : '') + (isDual ? ' dual-active' : '');
       card.innerHTML = `
         <div class="provider-card-header">
           <span class="provider-card-dot"></span>
@@ -2458,6 +2458,59 @@ document.addEventListener('DOMContentLoaded', () => {
       saveDualConfig(cfg);
       renderDualConfigUI();
     }
+  });
+
+  // 测试所有使用中的多重识别模型
+  const btnTestAllDualModels = $('#btnTestAllDualModels');
+  btnTestAllDualModels.addEventListener('click', async () => {
+    const cfg = getDualConfig();
+    if (cfg.models.length === 0) {
+      showToast('暂无参与识别的模型');
+      return;
+    }
+
+    const providers = getProviders();
+    const modelsToTest = cfg.models.map(item => {
+      const p = providers.find(x => x.id === item.providerId);
+      return p ? { provider: p, model: item.model } : null;
+    }).filter(Boolean);
+
+    if (modelsToTest.length === 0) {
+      showToast('暂无可用的模型');
+      return;
+    }
+
+    showToast(`正在测试 ${modelsToTest.length} 个模型...`);
+
+    const results = await Promise.allSettled(
+      modelsToTest.map(async ({ provider: p, model }) => {
+        const startTime = Date.now();
+        try {
+          const originalModel = p.selectedModel;
+          p.selectedModel = model;
+          const testProvider = { ...p, selectedModel: model };
+          const testFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
+          const result = await callProviderAPI(testProvider, model, '', '', 'image/jpeg');
+          p.selectedModel = originalModel;
+          return { provider: p.name || p.id, model, success: true, time: ((Date.now() - startTime) / 1000).toFixed(1) };
+        } catch (e) {
+          return { provider: p.name || p.id, model, success: false, error: e.message, time: ((Date.now() - startTime) / 1000).toFixed(1) };
+        }
+      })
+    );
+
+    const succeeded = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+    const failed = succeeded.filter(r => !r.success);
+    const passed = succeeded.filter(r => r.success);
+
+    let msg = `测试完成：${passed.length} 个成功`;
+    if (failed.length > 0) {
+      msg += `，${failed.length} 个失败`;
+      failed.forEach(f => {
+        msg += `\n${f.provider}·${f.model}: ${f.error || '未知错误'}`;
+      });
+    }
+    showToast(msg);
   });
 
   // 初始化 badge
