@@ -1968,12 +1968,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (r.commercialFee > 0) feeItems.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#E8A04A;"></span>商业险 ${formatMoney(r.commercialFee)}</span>`);
       if (r.nonVehicleFee > 0) feeItems.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#6CB4A8;"></span>随车非车 ${formatMoney(r.nonVehicleFee)}</span>`);
 
-      // 构建保险类型标签
-      const tags = [];
-      if (r.compulsoryRate > 0) tags.push('交强');
-      if (r.commercialRate > 0) tags.push('商业');
-      if (r.nonVehicleRate > 0) tags.push('非车');
-
       item.innerHTML = `
         <div class="record-item-top">
           <div class="record-item-info">
@@ -1982,7 +1976,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="record-item-meta">
             <div class="record-time">${escapeHtml(r.time)}</div>
-            <div class="record-tags">${tags.map(t => `<span class="record-tag">${t}</span>`).join('')}</div>
           </div>
         </div>
         <div class="record-amount">${formatMoney(r.afterTax || 0)}</div>
