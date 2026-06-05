@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let html = '<div style="text-align:left;">';
     html += `<div style="font-weight:600;margin-bottom:12px;font-size:15px;">修改${label}</div>`;
-    html += `<input type="number" inputmode="decimal" id="rateEditInput" class="form-input" value="" placeholder="输入费率" step="0.01" min="0" style="width:100%;height:44px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:16px;outline:none;">`;
+    html += `<input type="number" id="rateEditInput" class="form-input" value="" placeholder="输入费率" step="0.01" min="0" style="width:100%;height:44px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:16px;outline:none;">`;
     html += '<div style="display:flex;gap:10px;margin-top:16px;">';
     html += '<button class="confirm-btn confirm-cancel" id="rateEditCancel" style="flex:1;">取消</button>';
     html += '<button class="confirm-btn confirm-ok" id="rateEditOk" style="flex:1;">确定</button>';
