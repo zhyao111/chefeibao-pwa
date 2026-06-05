@@ -866,7 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dialog.style.overflow = 'auto';
 
       let html = '<div class="confirm-dialog-content">';
-      html += `<div class="confirm-dialog-title" style="color:#4CAF50;">➕ 请添加 ${actualNeed} 个模型</div>`;
+      html += `<div class="confirm-dialog-title" style="color:#4CAF50;">➕ 请添加模型</div>`;
       html += `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">当前模型不足，请选择要参与识别的模型：</div>`;
 
       availableModels.forEach((item, i) => {
