@@ -330,6 +330,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // 重新获取数据（包含新填入的费率）
     const newData = getFormData();
 
+    // 检查有保费和费率但没有到期时间的情况
+    const missingExpiry = [];
+    if (newData.compulsoryAmount > 0 && newData.compulsoryRate > 0 && !newData.compulsoryExpiry) {
+      missingExpiry.push({ label: '交强险到期时间', el: compulsoryExpiryYear, type: 'expiry', expiryEls: [compulsoryExpiryYear, compulsoryExpiryMonth, compulsoryExpiryDay] });
+    }
+    if (newData.commercialAmount > 0 && newData.commercialRate > 0 && !newData.commercialExpiry) {
+      missingExpiry.push({ label: '商业险到期时间', el: commercialExpiryYear, type: 'expiry', expiryEls: [commercialExpiryYear, commercialExpiryMonth, commercialExpiryDay] });
+    }
+
+    if (missingExpiry.length > 0) {
+      showMissingExpiryDialog(missingExpiry, newData);
+      return;
+    }
+
     // 如果数据没有改动，直接计算不弹窗
     if (lastCalculatedData && isSameData(lastCalculatedData, newData)) {
       doCalculate(newData);
@@ -406,6 +420,83 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.querySelector('#missingFieldsCancel').addEventListener('click', (e) => {
       e.stopPropagation();
       document.body.removeChild(overlay);
+    });
+  }
+
+  function showMissingExpiryDialog(missingExpiry, data) {
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.style.zIndex = '1100';
+
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog';
+    dialog.style.maxWidth = '320px';
+
+    let html = '<div style="text-align:left;">';
+    html += '<div style="font-weight:600;margin-bottom:12px;font-size:15px;color:#E74C3C;">⚠️ 请填写到期时间</div>';
+    html += '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">以下保险有保费但缺少到期时间：</div>';
+
+    missingExpiry.forEach((item, i) => {
+      html += `<div style="margin-bottom:12px;">`;
+      html += `<label style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;display:block;">${item.label}</label>`;
+      html += `<div class="expiry-inputs" style="gap:6px;">`;
+      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="year" placeholder="年" min="2020" max="2099" style="flex:1;min-width:50px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:clamp(12px,2.4vw,14px);color:var(--text);outline:none;">`;
+      html += `<span style="font-size:13px;color:var(--text-secondary);">年</span>`;
+      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="month" placeholder="月" min="1" max="12" style="flex:1;min-width:40px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:clamp(12px,2.4vw,14px);color:var(--text);outline:none;">`;
+      html += `<span style="font-size:13px;color:var(--text-secondary);">月</span>`;
+      html += `<input type="number" class="expiry-dialog-input" data-idx="${i}" data-type="day" placeholder="日" min="1" max="31" style="flex:1;min-width:40px;height:40px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;text-align:center;font-size:clamp(12px,2.4vw,14px);color:var(--text);outline:none;">`;
+      html += `<span style="font-size:13px;color:var(--text-secondary);">日</span>`;
+      html += `</div>`;
+      html += '</div>';
+    });
+
+    html += '<div style="display:flex;gap:10px;margin-top:16px;">';
+    html += '<button class="confirm-btn confirm-cancel" id="expirySkip" style="flex:1;">跳过</button>';
+    html += '<button class="confirm-btn confirm-ok" id="expiryConfirm" style="flex:1;">确定</button>';
+    html += '</div>';
+    html += '</div>';
+
+    dialog.innerHTML = html;
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    // 聚焦第一个输入框
+    const firstInput = overlay.querySelector('.expiry-dialog-input');
+    if (firstInput) setTimeout(() => firstInput.focus(), 100);
+
+    // 确定：将输入的到期时间填入对应字段
+    overlay.querySelector('#expiryConfirm').addEventListener('click', (e) => {
+      e.stopPropagation();
+      missingExpiry.forEach((item, i) => {
+        const year = overlay.querySelector(`.expiry-dialog-input[data-idx="${i}"][data-type="year"]`);
+        const month = overlay.querySelector(`.expiry-dialog-input[data-idx="${i}"][data-type="month"]`);
+        const day = overlay.querySelector(`.expiry-dialog-input[data-idx="${i}"][data-type="day"]`);
+        if (year && month && day) {
+          const y = year.value.trim();
+          const m = month.value.trim();
+          const d = day.value.trim();
+          if (y && m && d) {
+            const expiryStr = `${y}年${m}月${d}日`;
+            item.expiryEls[0].value = y;
+            item.expiryEls[1].value = m;
+            item.expiryEls[2].value = d;
+            // 更新对应的 ocrExpiry
+            if (item.label.includes('交强')) ocrExpiry.compulsory = expiryStr;
+            if (item.label.includes('商业')) ocrExpiry.commercial = expiryStr;
+          }
+        }
+      });
+      document.body.removeChild(overlay);
+      // 继续计算
+      const newData = getFormData();
+      doCalculate(newData);
+    });
+
+    // 跳过：直接计算
+    overlay.querySelector('#expirySkip').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.body.removeChild(overlay);
+      doCalculate(data);
     });
   }
 
