@@ -2203,8 +2203,36 @@ document.addEventListener('DOMContentLoaded', () => {
     saveDualConfig({ ...getDualConfig(), enabled: chkDualRecognize.checked });
   });
 
-  selectDualCount.addEventListener('change', () => {
-    saveDualConfig({ ...getDualConfig(), count: parseInt(selectDualCount.value) });
+  selectDualCount.addEventListener('change', async () => {
+    const cfg = getDualConfig();
+    const newCount = parseInt(selectDualCount.value);
+    cfg.count = newCount;
+
+    // 如果模型数量超过新的识别数，弹窗让用户选择不使用的模型
+    if (cfg.models.length > newCount) {
+      const providers = getProviders();
+      const modelsWithInfo = cfg.models.map(item => {
+        const p = providers.find(x => x.id === item.providerId);
+        return p ? { provider: p, model: item.model } : null;
+      }).filter(Boolean);
+
+      const excluded = await showExcludeModelsDialog(modelsWithInfo, newCount);
+      if (excluded !== null) {
+        const sortedExcluded = [...excluded].sort((a, b) => b - a);
+        sortedExcluded.forEach(idx => {
+          cfg.models.splice(idx, 1);
+        });
+        saveDualConfig(cfg);
+        renderDualConfigUI();
+        showToast('已更新参与识别的模型');
+      } else {
+        // 取消：恢复原来的值
+        selectDualCount.value = cfg.count;
+        return;
+      }
+    } else {
+      saveDualConfig(cfg);
+    }
   });
 
   btnAddDualModel.addEventListener('click', async () => {
