@@ -333,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 检查是否有保费数据
     const hasAmount = newData.compulsoryAmount > 0 || newData.commercialAmount > 0 || newData.nonVehicleAmount > 0 || newData.vehicleTax > 0;
     if (!hasAmount) {
+      showToast('请填写保费金额');
       return;
     }
 
