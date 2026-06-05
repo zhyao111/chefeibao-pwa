@@ -1,5 +1,5 @@
 /**
- * 车费宝 - Car Fee Calculator
+ * 报价单 - Car Fee Calculator
  * 核心交互逻辑
  */
 
@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const nonVehicleRate = $('#nonVehicleRate');
   const vehicleTax = $('#vehicleTax');
 
+  // Hide result when any input changes
+  const allInputs = [insuranceCompany, plateNumber, quickRate, addInvest,
+    compulsoryAmount, compulsoryRate, commercialAmount, commercialRate,
+    nonVehicleAmount, nonVehicleRate, vehicleTax];
+  allInputs.forEach((input) => {
+    input.addEventListener('input', () => {
+      if (resultSection.style.display === 'block') {
+        resultSection.style.display = 'none';
+      }
+    });
+  });
+
   // Buttons
   const btnReset = $('#btnReset');
   const btnCalculate = $('#btnCalculate');
@@ -48,13 +60,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsMenu = $('#settingsMenu');
   const btnGoRecords = $('#btnGoRecords');
   const btnGoModels = $('#btnGoModels');
+  const btnGoFailover = $('#btnGoFailover');
   const subpageRecords = $('#subpageRecords');
   const subpageModels = $('#subpageModels');
+  const subpageFailover = $('#subpageFailover');
   const btnBackFromRecords = $('#btnBackFromRecords');
   const btnBackFromModels = $('#btnBackFromModels');
+  const btnBackFromFailover = $('#btnBackFromFailover');
 
   // Provider Management
   const providerListEl = $('#providerList');
+
+  // Failover queue
+  const chkFailover = $('#chkFailover');
+  const selectFailoverProvider = $('#selectFailoverProvider');
+  const btnAddFailover = $('#btnAddFailover');
+  const failoverQueueEl = $('#failoverQueue');
   const emptyStateProviders = $('#emptyStateProviders');
   const btnAddProvider = $('#btnAddProvider');
   const providerModal = $('#providerModal');
@@ -89,14 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Quick select presets
   const PROVIDER_PRESETS = {
-    openai:    { name: 'OpenAI',    baseUrl: 'https://api.openai.com/v1',     protocol: 'openai' },
-    deepseek:  { name: 'DeepSeek',  baseUrl: 'https://api.deepseek.com/v1',   protocol: 'openai' },
-    zhipu:     { name: '智谱 AI',   baseUrl: 'https://open.bigmodel.cn/api/paas/v4', protocol: 'openai' },
-    qwen:      { name: '通义千问',   baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', protocol: 'openai' },
-    moonshot:  { name: '月之暗面',   baseUrl: 'https://api.moonshot.cn/v1',     protocol: 'openai' },
-    baidu:     { name: '百度智能云', baseUrl: 'https://aip.baidubce.com',      protocol: 'ocr' },
-    tencent:   { name: '腾讯云',     baseUrl: 'https://ocr.tencentcloudapi.com', protocol: 'ocr' },
-    aliyun:    { name: '阿里云',     baseUrl: 'https://ocr-api.cn-hangzhou.aliyuncs.com', protocol: 'ocr' },
+    xiaomi: { name: '小米', baseUrl: 'https://api.xiaomimimo.com/v1', protocol: 'openai' },
+    qwen: { name: '千问', baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1', protocol: 'openai' },
   };
 
   // Temporary model list during modal editing
@@ -133,11 +148,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (name === 'records') {
       subpageRecords.style.display = 'block';
       subpageModels.style.display = 'none';
+      subpageFailover.style.display = 'none';
       renderRecords();
     } else if (name === 'models') {
       subpageModels.style.display = 'block';
       subpageRecords.style.display = 'none';
+      subpageFailover.style.display = 'none';
       renderProviders();
+      renderFailoverUI();
+    } else if (name === 'failover') {
+      subpageFailover.style.display = 'block';
+      subpageModels.style.display = 'none';
+      subpageRecords.style.display = 'none';
+      renderFailoverUI();
     }
   }
 
@@ -145,12 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsMenu.style.display = 'block';
     subpageRecords.style.display = 'none';
     subpageModels.style.display = 'none';
+    subpageFailover.style.display = 'none';
   }
 
   btnGoRecords.addEventListener('click', () => showSubpage('records'));
+  btnGoFailover.addEventListener('click', () => showSubpage('failover'));
   btnGoModels.addEventListener('click', () => showSubpage('models'));
   btnBackFromRecords.addEventListener('click', hideSubpages);
   btnBackFromModels.addEventListener('click', hideSubpages);
+  btnBackFromFailover.addEventListener('click', hideSubpages);
 
   // ====== Quick Fill Rate ======
   quickRate.addEventListener('blur', () => {
@@ -174,8 +200,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // ====== Calculate ======
   btnCalculate.addEventListener('click', () => {
     const data = getFormData();
-    const allZero = data.compulsoryRate === 0 && data.commercialRate === 0 && data.nonVehicleRate === 0;
-    if (allZero) {
+
+    // 如果保险公司为空，跳转到保险公司输入框并调出键盘
+    if (!insuranceCompany.value.trim()) {
+      showToast('请先填写保险公司');
+      insuranceCompany.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => insuranceCompany.focus(), 300);
+      return;
+    }
+
+    // 如果车牌号为空，跳转到车牌号输入框并调出键盘
+    if (!plateNumber.value.trim()) {
+      showToast('请先填写车牌号');
+      plateNumber.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => plateNumber.focus(), 300);
+      return;
+    }
+
+    // 保险公司有值但快速填写手续费比例为空，跳转到快速填写
+    if (!quickRate.value.trim()) {
       showToast('请先填写手续费比例');
       quickRate.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => quickRate.focus(), 300);
@@ -184,6 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const results = calculate(data);
     displayResults(results);
     resultSection.style.display = 'block';
+    const text = formatPlanText(data, results);
+    copyToClipboard(text);
+    showToast('已计算并复制文案');
     setTimeout(() => {
       resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -231,6 +277,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     showImagePreview(file);
+    setTimeout(() => {
+      quickRate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => quickRate.focus(), 300);
+    }, 200);
   });
 
   function showImagePreview(file) {
@@ -240,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
       imgPreviewWrap.style.display = 'block';
       const provider = getActiveProvider();
       const statusText = provider
-        ? `使用 ${provider.name} · ${provider.models[0] || '默认模型'} 识别中...`
+        ? `使用 ${provider.name} · ${provider.selectedModel || provider.models[0] || '默认模型'} 识别中...`
         : '未配置识别模型，请先在设置中添加';
       imgPreviewStatus.textContent = statusText;
       imgPreviewStatus.className = provider ? 'img-preview-status loading' : 'img-preview-status error';
@@ -284,36 +334,110 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- Recognize Image ----
   async function recognizeImage(file, provider) {
-    const modelName = provider.models[0] || '';
     try {
       const base64 = await fileToBase64(file);
       const dataUrl = `data:${file.type || 'image/jpeg'};base64,${base64}`;
-
-      let result;
-
-      if (provider.protocol === 'openai') {
-        result = await callOpenAICompatible(provider, modelName, dataUrl);
-      } else if (provider.protocol === 'ocr') {
-        result = await callOCRInterface(provider, modelName, base64, file.type || 'image/jpeg');
-      } else {
-        // custom — fallback to openai format
-        result = await callOpenAICompatible(provider, modelName, dataUrl);
-      }
-
-      imgPreviewStatus.textContent = `${provider.name} · ${modelName} — 识别完成`;
+      const result = await tryWithFailover(provider, file, base64, dataUrl);
+      imgPreviewStatus.textContent = `${result.providerName} · ${result.modelName} — 识别完成`;
       imgPreviewStatus.className = 'img-preview-status';
-      applyOCRResult(result);
+      applyOCRResult(result.data);
       showToast('识别完成，已自动填入数据');
-      setTimeout(() => {
-        quickRate.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => quickRate.focus(), 300);
-      }, 500);
-
     } catch (err) {
       console.error('OCR error:', err);
       imgPreviewStatus.textContent = '识别失败：' + (err.message || '未知错误');
       imgPreviewStatus.className = 'img-preview-status error';
       showToast('识别失败，请检查配置后重试');
+    }
+  }
+
+  async function tryWithFailover(provider, file, base64, dataUrl) {
+    const cfg = getFailoverConfig();
+    if (!cfg.enabled || !cfg.queue || cfg.queue.length === 0) {
+      const model = provider.selectedModel || provider.models[0] || '';
+      return {
+        providerName: provider.name,
+        modelName: model,
+        data: await callProviderAPI(provider, model, dataUrl, base64, file.type),
+      };
+    }
+
+    const all = cfg.queue.map((id) => getProviders().find((p) => p.id === id)).filter(Boolean);
+    const tryList = [];
+    const seen = new Set();
+    if (provider) { tryList.push(provider); seen.add(provider.id); }
+    all.forEach((p) => { if (!seen.has(p.id)) { tryList.push(p); seen.add(p.id); } });
+
+    const maxRetries = cfg.retryCount || 3;
+    const timeout = (cfg.timeout || 30) * 1000;
+    const breakerEnabled = cfg.circuitBreaker !== false;
+    const breakerThreshold = cfg.breakerThreshold || 3;
+    const breakerCooldown = (cfg.breakerCooldown || 5) * 60 * 1000;
+
+    let totalTries = 0;
+    let lastErr = null;
+
+    // Circuit breaker state
+    if (!window._failoverBreaker) window._failoverBreaker = {};
+    const breaker = window._failoverBreaker;
+
+    for (const p of tryList) {
+      if (totalTries >= maxRetries) break;
+
+      // Check circuit breaker
+      if (breakerEnabled && breaker[p.id]) {
+        const frozen = breaker[p.id];
+        if (Date.now() - frozen.since < breakerCooldown) {
+          console.warn(`Failover: ${p.name} is circuit-broken, skipping`);
+          totalTries++;
+          continue;
+        } else {
+          delete breaker[p.id]; // cooldown expired, reset
+        }
+      }
+
+      const model = p.selectedModel || p.models[0] || '';
+      imgPreviewStatus.textContent = `[${totalTries + 1}/${maxRetries}] 使用 ${p.name} · ${model} 识别中...`;
+      imgPreviewStatus.className = 'img-preview-status loading';
+
+      try {
+        const data = await callProviderAPIWithTimeout(p, model, dataUrl, base64, file.type, timeout);
+        // Success — reset breaker for this provider
+        if (breaker[p.id]) delete breaker[p.id];
+        return { providerName: p.name, modelName: model, data };
+      } catch (err) {
+        lastErr = err;
+        totalTries++;
+        console.warn(`Failover: ${p.name} failed (${totalTries}/${maxRetries})`, err.message);
+
+        // Track for circuit breaker
+        if (breakerEnabled) {
+          if (!breaker[p.id]) breaker[p.id] = { failCount: 0, since: Date.now() };
+          breaker[p.id].failCount++;
+          breaker[p.id].since = Date.now();
+          if (breaker[p.id].failCount >= breakerThreshold) {
+            console.warn(`Failover: ${p.name} circuit BREAK (${breaker[p.id].failCount} consecutive failures)`);
+          }
+        }
+      }
+    }
+    throw lastErr || new Error('所有供应商均识别失败');
+  }
+
+  async function callProviderAPIWithTimeout(provider, modelName, dataUrl, base64, mimeType, timeout) {
+    const result = await Promise.race([
+      callProviderAPI(provider, modelName, dataUrl, base64, mimeType),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('请求超时')), timeout)),
+    ]);
+    return result;
+  }
+
+  async function callProviderAPI(provider, modelName, dataUrl, base64, mimeType) {
+    if (provider.protocol === 'openai') {
+      return await callOpenAICompatible(provider, modelName, dataUrl);
+    } else if (provider.protocol === 'ocr') {
+      return await callOCRInterface(provider, modelName, base64, mimeType || 'image/jpeg');
+    } else {
+      return await callOpenAICompatible(provider, modelName, dataUrl);
     }
   }
 
@@ -422,6 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function applyOCRResult(data) {
+    resultSection.style.display = 'none';
     insuranceCompany.value = data.company || '';
     plateNumber.value = data.plate || '';
     if (data.compulsoryAmount != null) compulsoryAmount.value = data.compulsoryAmount;
@@ -449,6 +574,267 @@ document.addEventListener('DOMContentLoaded', () => {
     imgPreviewStatus.className = 'img-preview-status';
     fileInput.value = '';
   });
+
+  // ====== Image Viewer (WeChat-style) ======
+  const btnViewImg = $('#btnViewImg');
+  const imgViewerOverlay = $('#imgViewerOverlay');
+  const imgViewerImg = $('#imgViewerImg');
+
+  // Center-based coordinate system
+  // (cx, cy) = screen position of the image center
+  let scale = 1, cx = 0, cy = 0;
+  let baseW = 0, baseH = 0;
+  const MIN_SCALE = 1, MAX_SCALE = 5;
+  let lastTapTime = 0;
+  let movedSinceTouch = false;
+
+  // Touch tracking
+  let t0 = null, t1 = null;
+  let pinchStartDist = 0, pinchStartScale = 1;
+  let pinchStartCX = 0, pinchStartCY = 0;
+  let pinchMidStartX = 0, pinchMidStartY = 0;
+  let panStartX = 0, panStartY = 0;
+  let velHistory = [];
+  let flingRAF = null;
+
+  function vw() { return window.innerWidth; }
+  function vh() { return window.innerHeight; }
+
+  function updateBaseSize() {
+    const natW = imgViewerImg.naturalWidth || 1;
+    const natH = imgViewerImg.naturalHeight || 1;
+    const ratio = natW / natH;
+    if (ratio > vw() / vh()) {
+      baseW = vw();
+      baseH = vw() / ratio;
+    } else {
+      baseH = vh();
+      baseW = vh() * ratio;
+    }
+  }
+
+  function getScaledSize() {
+    return { w: baseW * scale, h: baseH * scale };
+  }
+
+  function clampCenter() {
+    if (scale <= 1) { cx = 0; cy = 0; return; }
+    const s = getScaledSize();
+    const maxX = Math.max(0, (s.w - vw()) / 2);
+    const maxY = Math.max(0, (s.h - vh()) / 2);
+    cx = Math.min(Math.max(cx, -maxX), maxX);
+    cy = Math.min(Math.max(cy, -maxY), maxY);
+  }
+
+  function applyTransform(animate) {
+    clampCenter();
+    if (animate) {
+      imgViewerImg.classList.add('animating');
+      setTimeout(() => imgViewerImg.classList.remove('animating'), 320);
+    } else {
+      imgViewerImg.classList.remove('animating');
+    }
+    imgViewerImg.style.transform = `translate(${cx}px, ${cy}px) scale(${scale})`;
+  }
+
+  function resetViewer() {
+    scale = 1; cx = 0; cy = 0;
+    cancelFling();
+    applyTransform(false);
+  }
+
+  // Open
+  btnViewImg.addEventListener('click', () => {
+    if (!imgPreview.src || imgPreviewWrap.style.display === 'none') {
+      showToast('请先上传图片');
+      return;
+    }
+    updateBaseSize();
+    resetViewer();
+    imgViewerImg.src = imgPreview.src;
+    imgViewerOverlay.style.display = 'block';
+  });
+
+  // Close on overlay tap
+  imgViewerOverlay.addEventListener('click', () => {
+    imgViewerOverlay.style.display = 'none';
+  });
+
+  // ====== Touch Events ======
+
+  imgViewerImg.addEventListener('touchstart', (e) => {
+    cancelFling();
+    movedSinceTouch = false;
+
+    if (e.touches.length === 2) {
+      t0 = e.touches[0]; t1 = e.touches[1];
+      pinchStartDist = dist(t0, t1);
+      pinchStartScale = scale;
+      const m = mid(t0, t1);
+      pinchMidStartX = m.x;
+      pinchMidStartY = m.y;
+      pinchStartCX = cx;
+      pinchStartCY = cy;
+    } else if (e.touches.length === 1) {
+      t0 = e.touches[0];
+      panStartX = t0.clientX - cx;
+      panStartY = t0.clientY - cy;
+      velHistory = [{ x: t0.clientX, y: t0.clientY, t: Date.now() }];
+    }
+  }, { passive: true });
+
+  imgViewerImg.addEventListener('touchmove', (e) => {
+    movedSinceTouch = true;
+
+    if (e.touches.length === 2 && t0 && t1) {
+      // Pinch zoom centered on pinch midpoint
+      const ct0 = e.touches[0], ct1 = e.touches[1];
+      const curDist = dist(ct0, ct1);
+      const curMid = mid(ct0, ct1);
+      const newScale = Math.min(Math.max(pinchStartScale * (curDist / pinchStartDist), 0.5), MAX_SCALE);
+
+      // Keep pinch midpoint fixed on screen:
+      // screenX = pinchMidStartX + pinchStartCX
+      // After scale: screenX = curMid.x + newCX
+      // => newCX = pinchMidStartX + pinchStartCX - curMid.x
+      cx = pinchMidStartX + pinchStartCX - curMid.x;
+      cy = pinchMidStartY + pinchStartCY - curMid.y;
+
+      scale = newScale;
+      clampCenter();
+      imgViewerImg.style.transform = `translate(${cx}px, ${cy}px) scale(${scale})`;
+
+    } else if (e.touches.length === 1 && t0) {
+      const ct = e.touches[0];
+      let newCX = ct.clientX - panStartX;
+      let newCY = ct.clientY - panStartY;
+
+      if (scale <= 1) {
+        // Rubber-band horizontal
+        newCY = 0;
+      }
+      // Soft clamp (allow overshoot)
+      const s = getScaledSize();
+      const maxX = Math.max(0, (s.w - vw()) / 2);
+      const maxY = Math.max(0, (s.h - vh()) / 2);
+      const overshoot = 80;
+      newCX = Math.min(Math.max(newCX, -maxX - overshoot), maxX + overshoot);
+      newCY = Math.min(Math.max(newCY, -maxY - overshoot), maxY + overshoot);
+
+      cx = newCX;
+      cy = newCY;
+      imgViewerImg.style.transform = `translate(${cx}px, ${cy}px) scale(${scale})`;
+
+      // Velocity tracking
+      const now = Date.now();
+      velHistory.push({ x: ct.clientX, y: ct.clientY, t: now });
+      if (velHistory.length > 5) velHistory.shift();
+    }
+  }, { passive: true });
+
+  imgViewerImg.addEventListener('touchend', (e) => {
+    if (e.touches.length === 1) {
+      const remaining = e.touches[0];
+      t0 = remaining; t1 = null;
+      panStartX = remaining.clientX - cx;
+      panStartY = remaining.clientY - cy;
+      velHistory = [{ x: remaining.clientX, y: remaining.clientY, t: Date.now() }];
+    } else if (e.touches.length === 0) {
+      t0 = null; t1 = null;
+
+      // Fling
+      if (scale > 1 && movedSinceTouch && velHistory.length >= 2) {
+        const last = velHistory[velHistory.length - 1];
+        const first = velHistory[0];
+        const dt = (last.t - first.t) || 1;
+        const vx = (last.x - first.x) / dt * 16;
+        const vy = (last.y - first.y) / dt * 16;
+        if (Math.abs(vx) > 0.5 || Math.abs(vy) > 0.5) {
+          startFling(vx, vy);
+          return;
+        }
+      }
+
+      // Snap back
+      if (scale < MIN_SCALE) scale = MIN_SCALE;
+      clampCenter();
+      applyTransform(true);
+    }
+  }, { passive: true });
+
+  // ====== Click handling ======
+  imgViewerImg.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (movedSinceTouch) return;
+
+    const now = Date.now();
+    if (lastTapTime && now - lastTapTime < 300) {
+      lastTapTime = 0;
+      const tapX = e.clientX;
+      const tapY = e.clientY;
+
+      if (scale > MIN_SCALE) {
+        scale = MIN_SCALE; cx = 0; cy = 0;
+        applyTransform(true);
+      } else {
+        // Zoom to 2x centered on tap point
+        scale = 2;
+        updateBaseSize();
+        cx = vw() / 2 - tapX;
+        cy = vh() / 2 - tapY;
+        clampCenter();
+        applyTransform(true);
+      }
+      return;
+    }
+    lastTapTime = now;
+    setTimeout(() => {
+      if (lastTapTime !== now) return;
+      imgViewerOverlay.style.display = 'none';
+    }, 300);
+  });
+
+  // ====== Fling ======
+  function startFling(vx, vy) {
+    cancelFling();
+    let curVX = vx, curVY = vy;
+
+    function step() {
+      cx += curVX;
+      cy += curVY;
+      curVX *= 0.95;
+      curVY *= 0.95;
+
+      const s = getScaledSize();
+      const maxX = Math.max(0, (s.w - vw()) / 2);
+      const maxY = Math.max(0, (s.h - vh()) / 2);
+      let bounced = false;
+      if (cx > maxX) { cx = maxX; curVX = 0; bounced = true; }
+      if (cx < -maxX) { cx = -maxX; curVX = 0; bounced = true; }
+      if (cy > maxY) { cy = maxY; curVY = 0; bounced = true; }
+      if (cy < -maxY) { cy = -maxY; curVY = 0; bounced = true; }
+
+      imgViewerImg.style.transform = `translate(${cx}px, ${cy}px) scale(${scale})`;
+      if (Math.abs(curVX) < 0.3 && Math.abs(curVY) < 0.3) {
+        if (bounced) applyTransform(true);
+        return;
+      }
+      flingRAF = requestAnimationFrame(step);
+    }
+    flingRAF = requestAnimationFrame(step);
+  }
+
+  function cancelFling() {
+    if (flingRAF) { cancelAnimationFrame(flingRAF); flingRAF = null; }
+  }
+
+  // ====== Helpers ======
+  function dist(a, b) {
+    return Math.sqrt((b.clientX - a.clientX) ** 2 + (b.clientY - a.clientY) ** 2);
+  }
+  function mid(a, b) {
+    return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
+  }
 
   // ====== Save Record ======
   btnSaveRecord.addEventListener('click', () => {
@@ -597,14 +983,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function formatPlanText(data, results) {
-    const premium = round2(data.compulsoryAmount + data.commercialAmount + data.nonVehicleAmount + data.vehicleTax);
     const lines = [];
     if (data.company) lines.push(`保险公司：${data.company}`);
     if (data.plate) lines.push(`车牌号：${data.plate}`);
-    lines.push(`交强险保费${data.compulsoryAmount}元，到期时间为${data.compulsoryExpiry || '未知'}`);
-    lines.push(`商业险保费${data.commercialAmount}元，到期时间为${data.commercialExpiry || '未知'}`);
-    lines.push(`随车非车保费${data.nonVehicleAmount}元`);
-    lines.push(`车船税${data.vehicleTax}元。`);
+
+    let premium = 0;
+    if (data.compulsoryRate > 0) {
+      premium += data.compulsoryAmount;
+      lines.push(`交强险保费${data.compulsoryAmount}元，到期时间为${data.compulsoryExpiry || '未知'}`);
+    }
+    if (data.commercialRate > 0) {
+      premium += data.commercialAmount;
+      lines.push(`商业险保费${data.commercialAmount}元，到期时间为${data.commercialExpiry || '未知'}`);
+    }
+    if (data.nonVehicleRate > 0) {
+      premium += data.nonVehicleAmount;
+      lines.push(`随车非车保费${data.nonVehicleAmount}元`);
+    }
+    if (data.vehicleTax > 0) {
+      premium += data.vehicleTax;
+      lines.push(`车船税${data.vehicleTax}元。`);
+    }
+
+    premium = round2(premium);
     lines.push(`保费合计${premium}元`);
     lines.push(`费用${formatMoney(results.afterTax)}`);
     lines.push(`实付为${formatMoney(premium - results.afterTax)}`);
@@ -822,11 +1223,11 @@ document.addEventListener('DOMContentLoaded', () => {
           ${isActive ? '<span class="provider-card-badge">使用中</span>' : ''}
         </div>
         <div class="provider-card-meta">${escapeHtml(p.baseUrl)}</div>
-        <div class="provider-card-models">
+        <select class="provider-model-select" data-action="switchModel" data-id="${p.id}">
           ${(p.models || []).map((m) =>
-            `<span class="provider-model-chip${isActive ? ' active-model' : ''}">${escapeHtml(m)}</span>`
+            `<option value="${escapeHtml(m)}"${m === (p.selectedModel || p.models[0]) ? ' selected' : ''}>${escapeHtml(m)}</option>`
           ).join('')}
-        </div>
+        </select>
         <div class="provider-card-actions">
           <button class="provider-action-btn provider-action-select" data-action="select" data-id="${p.id}">${isActive ? '当前使用' : '使用此模型'}</button>
           <button class="provider-action-btn provider-action-test" data-action="test" data-id="${p.id}">测试</button>
@@ -837,6 +1238,127 @@ document.addEventListener('DOMContentLoaded', () => {
       providerListEl.appendChild(card);
     });
   }
+
+  // ====== Failover Queue ======
+  const FAILOVER_KEY = 'chefeibao_failover';
+  const selectRetryCount = $('#selectRetryCount');
+  const selectTimeout = $('#selectTimeout');
+  const chkCircuitBreaker = $('#chkCircuitBreaker');
+  const selectBreakerThreshold = $('#selectBreakerThreshold');
+  const selectBreakerCooldown = $('#selectBreakerCooldown');
+
+  function getFailoverConfig() {
+    try { return JSON.parse(localStorage.getItem(FAILOVER_KEY) || '{"enabled":true,"queue":[],"retryCount":3,"timeout":30,"circuitBreaker":true,"breakerThreshold":3,"breakerCooldown":5}'); }
+    catch { return { enabled: true, queue: [], retryCount: 3, timeout: 30, circuitBreaker: true, breakerThreshold: 3, breakerCooldown: 5 }; }
+  }
+
+  function saveFailoverConfig(cfg) {
+    localStorage.setItem(FAILOVER_KEY, JSON.stringify(cfg));
+  }
+
+  function getFailoverQueue() {
+    const cfg = getFailoverConfig();
+    const providers = getProviders();
+    return cfg.queue.map((id) => {
+      const p = providers.find((x) => x.id === id);
+      return p || null;
+    }).filter(Boolean);
+  }
+
+  function renderFailoverUI() {
+    const cfg = getFailoverConfig();
+    chkFailover.checked = cfg.enabled;
+    selectRetryCount.value = cfg.retryCount || 3;
+    selectTimeout.value = cfg.timeout || 30;
+    chkCircuitBreaker.checked = cfg.circuitBreaker !== false;
+    selectBreakerThreshold.value = cfg.breakerThreshold || 3;
+    selectBreakerCooldown.value = cfg.breakerCooldown || 5;
+    const providers = getProviders();
+    const queue = cfg.queue.filter((id) => providers.some((p) => p.id === id));
+
+    // Populate select
+    selectFailoverProvider.innerHTML = '<option value="">选择供应商...</option>';
+    providers.forEach((p) => {
+      if (!queue.includes(p.id)) {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name || p.id;
+        selectFailoverProvider.appendChild(opt);
+      }
+    });
+
+    // Render queue list
+    if (queue.length === 0) {
+      failoverQueueEl.innerHTML = '<p class="failover-queue-empty">暂无供应商，请将供应商加入队列</p>';
+      return;
+    }
+    failoverQueueEl.innerHTML = '';
+    queue.forEach((id, i) => {
+      const p = providers.find((x) => x.id === id);
+      if (!p) return;
+      const item = document.createElement('div');
+      item.className = 'failover-queue-item';
+      item.innerHTML = `
+        <span class="failover-queue-order">P${i + 1}</span>
+        <div class="failover-queue-info">
+          <div class="failover-queue-name">${escapeHtml(p.name || p.id)}</div>
+          <div class="failover-queue-model">${escapeHtml(p.selectedModel || (p.models[0] || ''))}</div>
+        </div>
+        <button class="failover-queue-remove" data-id="${id}" title="移出队列">&times;</button>
+      `;
+      item.querySelector('.failover-queue-remove').addEventListener('click', () => {
+        const newQueue = queue.filter((x) => x !== id);
+        saveFailoverConfig({ ...getFailoverConfig(), queue: newQueue });
+        renderFailoverUI();
+      });
+      failoverQueueEl.appendChild(item);
+    });
+  }
+
+  chkFailover.addEventListener('change', () => {
+    const cfg = getFailoverConfig();
+    cfg.enabled = chkFailover.checked;
+    saveFailoverConfig(cfg);
+  });
+
+  selectRetryCount.addEventListener('change', () => {
+    const cfg = getFailoverConfig();
+    cfg.retryCount = parseInt(selectRetryCount.value, 10);
+    saveFailoverConfig(cfg);
+  });
+
+  selectTimeout.addEventListener('change', () => {
+    const cfg = getFailoverConfig();
+    cfg.timeout = parseInt(selectTimeout.value, 10);
+    saveFailoverConfig(cfg);
+  });
+
+  chkCircuitBreaker.addEventListener('change', () => {
+    const cfg = getFailoverConfig();
+    cfg.circuitBreaker = chkCircuitBreaker.checked;
+    saveFailoverConfig(cfg);
+  });
+
+  selectBreakerThreshold.addEventListener('change', () => {
+    const cfg = getFailoverConfig();
+    cfg.breakerThreshold = parseInt(selectBreakerThreshold.value, 10);
+    saveFailoverConfig(cfg);
+  });
+
+  selectBreakerCooldown.addEventListener('change', () => {
+    const cfg = getFailoverConfig();
+    cfg.breakerCooldown = parseInt(selectBreakerCooldown.value, 10);
+    saveFailoverConfig(cfg);
+  });
+
+  btnAddFailover.addEventListener('click', () => {
+    const id = selectFailoverProvider.value;
+    if (!id) { showToast('请选择供应商'); return; }
+    const cfg = getFailoverConfig();
+    cfg.queue.push(id);
+    saveFailoverConfig(cfg);
+    renderFailoverUI();
+  });
 
   // Provider card actions (event delegation, registered once)
   providerListEl.addEventListener('click', (e) => {
@@ -855,6 +1377,21 @@ document.addEventListener('DOMContentLoaded', () => {
       deleteProvider(id);
     } else if (action === 'test') {
       testProvider(id);
+    }
+  });
+
+  // Model switch dropdown
+  providerListEl.addEventListener('change', (e) => {
+    if (e.target.dataset.action === 'switchModel') {
+      const id = e.target.dataset.id;
+      const model = e.target.value;
+      const providers = getProviders();
+      const p = providers.find((x) => x.id === id);
+      if (p) {
+        p.selectedModel = model;
+        saveProviders(providers);
+        showToast(`已切换到 ${model}`);
+      }
     }
   });
 
@@ -930,6 +1467,52 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') { e.preventDefault(); addModelTag(); }
   });
 
+  // Auto-fetch model names
+  const btnAutoFetch = $('#btnAutoFetch');
+  btnAutoFetch.addEventListener('click', () => {
+    const baseUrl = inputBaseUrl.value.trim();
+    const apiKey = inputApiKey.value.trim();
+    if (!baseUrl) { showToast('请先填写 Base URL'); return; }
+    if (!apiKey) { showToast('请先填写 API Key'); return; }
+
+    showToast('正在获取模型列表...');
+    fetch(`${baseUrl.replace(/\/+$/, '')}/models`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${apiKey}` },
+    })
+      .then((resp) => {
+        if (!resp.ok) throw new Error(`${resp.status}`);
+        return resp.json();
+      })
+      .then((json) => {
+        let models = (json.data || []).map((m) => m.id).filter(Boolean);
+        // Xiaomi: only keep mimo-v2.5 models
+        if (baseUrl.includes('xiaomimimo')) {
+          models = models.filter((m) => m === 'mimo-v2.5' || m === 'mimo-v2.5-pro');
+        }
+        // Qwen: only keep qwen3.6-flash
+        if (baseUrl.includes('dashscope')) {
+          models = models.filter((m) => m === 'qwen3.6-flash');
+        }
+        if (models.length === 0) {
+          showToast('未找到可用模型');
+          return;
+        }
+        let added = 0;
+        models.forEach((name) => {
+          if (!modalModels.includes(name)) {
+            modalModels.push(name);
+            added++;
+          }
+        });
+        renderModalModels();
+        showToast(added > 0 ? `已添加 ${added} 个模型` : '模型列表已存在');
+      })
+      .catch((err) => {
+        showToast('获取失败：' + (err.message || '网络错误'));
+      });
+  });
+
   function addModelTag() {
     const name = inputModelName.value.trim();
     if (!name) return;
@@ -950,17 +1533,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderModalModels() {
     modelCountEl.textContent = modalModels.length;
+    const emptyEl = $('#modalModelEmpty');
+
     if (modalModels.length === 0) {
-      modalModelList.innerHTML = '<p class="model-tag-empty">暂无模型</p>';
+      modalModelList.innerHTML = '<p class="model-tag-empty" id="modalModelEmpty">暂无模型</p>';
       return;
     }
+
     modalModelList.innerHTML = '';
     modalModels.forEach((m, i) => {
-      const tag = document.createElement('span');
-      tag.className = 'model-tag-item';
-      tag.innerHTML = `${escapeHtml(m)}<button class="model-tag-remove" data-idx="${i}">&times;</button>`;
-      tag.querySelector('.model-tag-remove').addEventListener('click', () => removeModalModel(i));
-      modalModelList.appendChild(tag);
+      const item = document.createElement('div');
+      item.className = 'model-select-item';
+      item.innerHTML = `
+        <select class="model-select-list-pick" data-idx="${i}">
+          ${modalModels.map((nm) => `<option value="${escapeHtml(nm)}"${nm === m ? ' selected' : ''}>${escapeHtml(nm)}</option>`).join('')}
+        </select>
+        <button class="model-remove-btn" data-idx="${i}">&times;</button>
+      `;
+      // Change model name via select
+      item.querySelector('select').addEventListener('change', (e) => {
+        modalModels[i] = e.target.value;
+        renderModalModels();
+      });
+      // Remove model
+      item.querySelector('.model-remove-btn').addEventListener('click', () => {
+        modalModels.splice(i, 1);
+        renderModalModels();
+      });
+      modalModelList.appendChild(item);
     });
   }
 
@@ -982,7 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Update existing
       const idx = providers.findIndex((p) => p.id === editingProviderId);
       if (idx >= 0) {
-        providers[idx] = { ...providers[idx], id, name, baseUrl, apiKey, protocol, models: [...modalModels] };
+        providers[idx] = { ...providers[idx], id, name, baseUrl, apiKey, protocol, models: [...modalModels], selectedModel: modalModels[0] || '' };
       }
     } else {
       // Check duplicate
@@ -990,7 +1590,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('提供商 ID 已存在');
         return;
       }
-      providers.push({ id, name, baseUrl, apiKey, protocol, models: [...modalModels] });
+      providers.push({ id, name, baseUrl, apiKey, protocol, models: [...modalModels], selectedModel: modalModels[0] || '' });
       // Auto-select first added provider
       if (!getActiveProviderId()) setActiveProvider(id);
     }
