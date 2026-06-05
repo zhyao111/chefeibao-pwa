@@ -2023,8 +2023,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const dualConfigBadge = $('#dualConfigBadge');
 
   function getDualConfig() {
-    try { return JSON.parse(localStorage.getItem(DUAL_KEY) || '{"enabled":true,"count":2,"models":[]}'); }
-    catch { return { enabled: true, count: 2, models: [] }; }
+    try {
+      const cfg = JSON.parse(localStorage.getItem(DUAL_KEY) || '{"enabled":true,"count":2,"models":[]}');
+      // 迁移旧格式：将 provider ID 数组转为 { providerId, model } 对象数组
+      if (cfg.models.length > 0 && typeof cfg.models[0] === 'string') {
+        const providers = getProviders();
+        cfg.models = cfg.models.map(id => {
+          const p = providers.find(x => x.id === id);
+          return {
+            providerId: id,
+            model: p ? (p.selectedModel || (p.models && p.models[0]) || '') : ''
+          };
+        });
+        saveDualConfig(cfg);
+      }
+      return cfg;
+    } catch {
+      return { enabled: true, count: 2, models: [] };
+    }
   }
 
   function saveDualConfig(cfg) {
