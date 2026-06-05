@@ -2183,15 +2183,15 @@ document.addEventListener('DOMContentLoaded', () => {
       const isDual = dualInfoMap.has(p.id);
       const dualModels = dualInfoMap.get(p.id) || [];
       const card = document.createElement('div');
-      card.className = 'provider-card' + (isActive ? ' active' : '');
+      card.className = 'provider-card' + (isActive ? ' active' : '') + (isDual ? ' dual-active' : '');
       card.innerHTML = `
         <div class="provider-card-header">
           <span class="provider-card-dot"></span>
           <span class="provider-card-name">${escapeHtml(p.name || p.id)}</span>
-          ${isDual ? '<span class="provider-card-badge" style="background:#EEF7FF;color:#2196F3;">多重识别</span>' : (isActive ? '<span class="provider-card-badge">使用中</span>' : '')}
+          ${isDual ? '<span class="provider-card-badge" style="background:#E8F5E9;color:#4CAF50;">多重识别使用中</span>' : (isActive ? '<span class="provider-card-badge">使用中</span>' : '')}
         </div>
         <div class="provider-card-meta">${escapeHtml(p.baseUrl)}</div>
-        ${dualModels.length > 0 ? `<div class="provider-card-dual-models">${dualModels.map(m => `<span class="provider-model-chip" style="background:#EEF7FF;color:#2196F3;">${escapeHtml(m)}</span>`).join('')}</div>` : ''}
+        ${dualModels.length > 0 ? `<div class="provider-card-dual-models">${dualModels.map(m => `<span class="provider-model-chip" style="background:#E8F5E9;color:#4CAF50;">${escapeHtml(m)}</span>`).join('')}</div>` : ''}
         ${!isDual || !dualEnabled ? `
         <select class="provider-model-select" data-action="switchModel" data-id="${p.id}">
           ${(p.models || []).map((m) =>
@@ -2200,7 +2200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </select>
         ` : ''}
         <div class="provider-card-actions">
-          <button class="provider-action-btn provider-action-select" data-action="select" data-id="${p.id}">${isActive ? '当前使用' : '使用此模型'}</button>
+          ${!(isDual && dualEnabled) ? `<button class="provider-action-btn provider-action-select" data-action="select" data-id="${p.id}">${isActive ? '当前使用' : '使用此模型'}</button>` : ''}
           <button class="provider-action-btn provider-action-test" data-action="test" data-id="${p.id}">测试</button>
           <button class="provider-action-btn provider-action-edit" data-action="edit" data-id="${p.id}">编辑</button>
           <button class="provider-action-btn provider-action-delete" data-action="delete" data-id="${p.id}">删除</button>
