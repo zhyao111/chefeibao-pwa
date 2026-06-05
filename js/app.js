@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ],
         }],
         temperature: 0.1,
-        max_tokens: 1024,
+        max_tokens: 2048,
       }),
     });
 
@@ -660,25 +660,49 @@ document.addEventListener('DOMContentLoaded', () => {
   function parseOCRJson(text) {
     // Extract JSON from possible markdown code block
     const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
-    const raw = jsonMatch ? jsonMatch[1].trim() : text.trim();
+    let raw = jsonMatch ? jsonMatch[1].trim() : text.trim();
 
-    const parsed = JSON.parse(raw);
-
-    return {
-      company: parsed.company || '',
-      plate: parsed.plate || '',
-      compulsoryAmount: num(parsed.compulsoryAmount),
-      compulsoryRate: num(parsed.compulsoryRate),
-      compulsoryExpiry: parsed.compulsoryExpiry || '',
-      commercialAmount: num(parsed.commercialAmount),
-      commercialRate: num(parsed.commercialRate),
-      commercialExpiry: parsed.commercialExpiry || '',
-      nonVehicleAmount: num(parsed.nonVehicleAmount),
-      nonVehicleRate: num(parsed.nonVehicleRate),
-      nonVehicleExpiry: parsed.nonVehicleExpiry || '',
-      vehicleTax: num(parsed.vehicleTax),
-      sections: parsed.sections || null,
-    };
+    // 尝试修复截断的 JSON
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        company: parsed.company || '',
+        plate: parsed.plate || '',
+        compulsoryAmount: num(parsed.compulsoryAmount),
+        compulsoryRate: num(parsed.compulsoryRate),
+        compulsoryExpiry: parsed.compulsoryExpiry || '',
+        commercialAmount: num(parsed.commercialAmount),
+        commercialRate: num(parsed.commercialRate),
+        commercialExpiry: parsed.commercialExpiry || '',
+        nonVehicleAmount: num(parsed.nonVehicleAmount),
+        nonVehicleRate: num(parsed.nonVehicleRate),
+        nonVehicleExpiry: parsed.nonVehicleExpiry || '',
+        vehicleTax: num(parsed.vehicleTax),
+        sections: parsed.sections || null,
+      };
+    } catch (e) {
+      // JSON 可能被截断，尝试逐字段提取
+      console.warn('JSON parse failed, trying field extraction:', e.message);
+      const extract = (key) => {
+        const m = raw.match(new RegExp(`"${key}"\\s*:\\s*("?[^",}\\]]*"?|\\d+\\.?\\d*)`));
+        return m ? m[1].replace(/"/g, '').trim() : '';
+      };
+      return {
+        company: extract('company'),
+        plate: extract('plate'),
+        compulsoryAmount: num(extract('compulsoryAmount')),
+        compulsoryRate: num(extract('compulsoryRate')),
+        compulsoryExpiry: extract('compulsoryExpiry'),
+        commercialAmount: num(extract('commercialAmount')),
+        commercialRate: num(extract('commercialRate')),
+        commercialExpiry: extract('commercialExpiry'),
+        nonVehicleAmount: num(extract('nonVehicleAmount')),
+        nonVehicleRate: num(extract('nonVehicleRate')),
+        nonVehicleExpiry: extract('nonVehicleExpiry'),
+        vehicleTax: num(extract('vehicleTax')),
+        sections: null,
+      };
+    }
   }
 
   function num(v) {
