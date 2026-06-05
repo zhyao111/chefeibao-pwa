@@ -2212,14 +2212,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!val) { showToast('请选择供应商和模型'); return; }
     const [providerId, model] = val.split('|||');
     const cfg = getDualConfig();
+    const maxCount = cfg.count || 2;
 
     // 先添加模型
     cfg.models.push({ providerId, model });
-    saveDualConfig(cfg);
-    renderDualConfigUI();
 
     // 如果模型数量超过配置的识别数，立即弹窗让用户选择不使用的模型
-    const maxCount = cfg.count || 2;
     if (cfg.models.length > maxCount) {
       const providers = getProviders();
       const modelsWithInfo = cfg.models.map(item => {
@@ -2243,6 +2241,9 @@ document.addEventListener('DOMContentLoaded', () => {
         saveDualConfig(cfg);
         renderDualConfigUI();
       }
+    } else {
+      saveDualConfig(cfg);
+      renderDualConfigUI();
     }
   });
 
