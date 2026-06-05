@@ -203,14 +203,71 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ====== Rate Input Click -> Jump to Quick Rate ======
-  [compulsoryRate, commercialRate, nonVehicleRate].forEach((el) => {
+  // ====== Rate Input Click -> Popup Edit ======
+  const RATE_FIELDS = [
+    { el: compulsoryRate, label: '交强险费率', idx: 0 },
+    { el: commercialRate, label: '商业险费率', idx: 1 },
+    { el: nonVehicleRate, label: '随车非车费率', idx: 2 },
+  ];
+
+  RATE_FIELDS.forEach(({ el, label, idx }) => {
     el.addEventListener('click', () => {
-      showToast('请在上方快速填写手续费比例');
-      quickRate.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => quickRate.focus(), 300);
+      showRateEditDialog(label, idx);
     });
   });
+
+  function showRateEditDialog(label, idx) {
+    // 解析当前快速填写的值
+    const currentRates = parseTripleInput(quickRate.value) || [0, 0, 0];
+    const currentValue = currentRates[idx] || '';
+
+    const overlay = document.createElement('div');
+    overlay.className = 'confirm-overlay';
+    overlay.style.zIndex = '1100';
+
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog';
+    dialog.style.maxWidth = '300px';
+
+    let html = '<div style="text-align:left;">';
+    html += `<div style="font-weight:600;margin-bottom:12px;font-size:15px;">修改${label}</div>`;
+    html += `<input type="number" id="rateEditInput" class="form-input" value="${currentValue}" placeholder="输入费率" step="0.01" min="0" style="width:100%;height:44px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:16px;outline:none;">`;
+    html += '<div style="display:flex;gap:10px;margin-top:16px;">';
+    html += '<button class="confirm-btn confirm-cancel" id="rateEditCancel" style="flex:1;">取消</button>';
+    html += '<button class="confirm-btn confirm-ok" id="rateEditOk" style="flex:1;">确定</button>';
+    html += '</div>';
+    html += '</div>';
+
+    dialog.innerHTML = html;
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+
+    // 自动聚焦并弹出键盘
+    const input = overlay.querySelector('#rateEditInput');
+    setTimeout(() => input.focus(), 100);
+
+    // 确定
+    overlay.querySelector('#rateEditOk').addEventListener('click', () => {
+      const val = parseFloat(input.value) || 0;
+      // 更新对应的费率输入框
+      el.value = val;
+      // 同步到快速填写
+      const rates = parseTripleInput(quickRate.value) || [0, 0, 0];
+      rates[idx] = val;
+      quickRate.value = rates.join('/');
+      document.body.removeChild(overlay);
+    });
+
+    // 取消
+    overlay.querySelector('#rateEditCancel').addEventListener('click', () => {
+      document.body.removeChild(overlay);
+    });
+
+    // 点击遮罩关闭
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) document.body.removeChild(overlay);
+    });
+  }
 
   // ====== Calculate ======
   let lastCalculatedData = null;
