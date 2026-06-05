@@ -116,13 +116,13 @@ body {
 }
 
 .card-subtitle {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
 .tag-optional {
-  font-size: 11px;
+  font-size: 0.7rem;
   color: var(--primary);
   background: var(--primary-light);
   padding: 2px 10px;
@@ -131,7 +131,7 @@ body {
 }
 
 .tag-required {
-  font-size: 11px;
+  font-size: 0.7rem;
   color: #E74C3C;
   background: #FDEAEA;
   padding: 2px 10px;
@@ -154,13 +154,13 @@ body {
 }
 
 .card-upload-text h3 {
-  font-size: 15px;
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .card-upload-text p {
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
@@ -173,7 +173,7 @@ body {
   border: none;
   border-radius: 20px;
   padding: 9px 18px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
@@ -187,7 +187,7 @@ body {
 }
 
 .ai-disclaimer {
-  font-size: 11px;
+  font-size: 0.7rem;
   color: var(--text-light);
   margin-top: 12px;
 }
@@ -220,7 +220,7 @@ body {
   background: rgba(0, 0, 0, 0.45);
   color: white;
   border: none;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -239,7 +239,7 @@ body {
   left: 0;
   right: 0;
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   text-align: center;
   background: rgba(255, 255, 255, 0.92);
@@ -309,7 +309,7 @@ body {
   background: rgba(0, 0, 0, 0.5);
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.6);
-  font-size: 24px;
+  font-size: 1.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -478,7 +478,7 @@ input[type="number"] {
 }
 
 .section-label-text {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-light);
   letter-spacing: 1px;
@@ -603,7 +603,7 @@ input[type="number"] {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  font-size: 14px;
+  font-size: 0.85rem;
   border-bottom: 1px solid #F5F0EE;
 }
 
@@ -633,7 +633,7 @@ input[type="number"] {
 }
 
 .highlight-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -659,7 +659,7 @@ input[type="number"] {
   background: var(--primary-light);
   color: var(--primary);
   border: none;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
@@ -718,7 +718,7 @@ input[type="number"] {
 }
 
 .settings-menu-badge {
-  font-size: 11px;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--primary);
   background: var(--primary-light);
@@ -728,7 +728,7 @@ input[type="number"] {
 }
 
 .settings-menu-arrow {
-  font-size: 20px;
+  font-size: 1.25rem;
   color: #CCC;
   font-weight: 300;
 }
@@ -736,7 +736,7 @@ input[type="number"] {
 /* ---- Settings Footer ---- */
 .settings-footer-text {
   text-align: center;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-light);
   margin-top: 32px;
   padding-bottom: 8px;
@@ -755,7 +755,7 @@ input[type="number"] {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text);
   margin-bottom: 14px;
@@ -812,7 +812,7 @@ input[type="number"] {
 
 .settings-font-value {
   text-align: center;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--primary);
   margin-top: 8px;
@@ -833,7 +833,7 @@ input[type="number"] {
 .subpage-back {
   background: none;
   border: none;
-  font-size: 14px;
+  font-size: 0.85rem;
   color: var(--primary);
   cursor: pointer;
   padding: 6px 10px;
@@ -848,13 +848,13 @@ input[type="number"] {
 
 .subpage-title {
   flex: 1;
-  font-size: 17px;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text);
 }
 
 .subpage-action {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--primary);
   background: var(--primary-light);
   border: none;
@@ -880,7 +880,7 @@ input[type="number"] {
 
 /* ========== Provider List (Settings) ========== */
 .settings-section-desc {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   padding: 0 4px 14px;
   line-height: 1.6;
@@ -933,14 +933,14 @@ input[type="number"] {
 }
 
 .provider-card-name {
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
   flex: 1;
 }
 
 .provider-card-badge {
-  font-size: 10px;
+  font-size: 0.6rem;
   padding: 2px 8px;
   border-radius: 10px;
   font-weight: 500;
@@ -949,7 +949,7 @@ input[type="number"] {
 }
 
 .provider-card-meta {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin-bottom: 10px;
   word-break: break-all;
@@ -963,7 +963,7 @@ input[type="number"] {
 }
 
 .provider-model-chip {
-  font-size: 11px;
+  font-size: 0.7rem;
   background: var(--input-bg);
   color: #888;
   padding: 3px 10px;
@@ -998,7 +998,7 @@ input[type="number"] {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   padding: 0 10px;
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text);
   margin-bottom: 10px;
   outline: none;
@@ -1022,7 +1022,7 @@ input[type="number"] {
   height: 34px;
   border-radius: 8px;
   border: none;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s;
@@ -1065,7 +1065,7 @@ input[type="number"] {
 }
 
 .auto-fetch-btn {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #2196F3;
   background: #EEF7FF;
@@ -1130,7 +1130,7 @@ input[type="number"] {
   border: none;
   background: var(--input-bg);
   color: var(--text-secondary);
-  font-size: 18px;
+  font-size: 1.1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1161,7 +1161,7 @@ input[type="number"] {
   flex: 1;
   height: 44px;
   border-radius: 22px;
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -1207,7 +1207,7 @@ input[type="number"] {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 0 14px;
-  font-size: 14px;
+  font-size: 0.85rem;
   color: var(--text);
   outline: none;
   transition: border-color 0.2s;
@@ -1275,7 +1275,7 @@ input[type="number"] {
 }
 
 .model-tag-empty {
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text-light);
   width: 100%;
   text-align: center;
@@ -1304,7 +1304,7 @@ input[type="number"] {
   background: transparent;
   border: none;
   padding: 0 8px;
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text);
   outline: none;
   -webkit-appearance: none;
@@ -1318,7 +1318,7 @@ input[type="number"] {
   border: none;
   background: #F5E6E0;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 0.85rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1340,7 +1340,7 @@ input[type="number"] {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 4px 8px;
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text);
 }
 
@@ -1351,7 +1351,7 @@ input[type="number"] {
   border: none;
   background: none;
   color: var(--text-light);
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1380,7 +1380,7 @@ input[type="number"] {
   border: 1.5px solid var(--primary);
   background: transparent;
   color: var(--primary);
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -1401,7 +1401,7 @@ input[type="number"] {
 }
 
 .failover-section-title {
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
   padding: 0 4px 10px;
@@ -1458,7 +1458,7 @@ input[type="number"] {
 }
 
 .toggle-label {
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 500;
   color: var(--text);
 }
@@ -1477,7 +1477,7 @@ input[type="number"] {
 }
 
 .failover-option-label {
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
@@ -1486,7 +1486,7 @@ input[type="number"] {
   border: 1.5px solid var(--border);
   border-radius: 8px;
   padding: 5px 24px 5px 10px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--text);
   -webkit-appearance: none;
@@ -1517,7 +1517,7 @@ input[type="number"] {
 }
 
 .failover-queue-order {
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--primary);
   min-width: 28px;
@@ -1536,13 +1536,13 @@ input[type="number"] {
 }
 
 .failover-queue-name {
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text);
 }
 
 .failover-queue-model {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
   margin-top: 2px;
 }
@@ -1554,7 +1554,7 @@ input[type="number"] {
   border: none;
   background: #F5E6E0;
   color: var(--text-secondary);
-  font-size: 16px;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1569,7 +1569,7 @@ input[type="number"] {
 }
 
 .failover-queue-empty {
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text-light);
   text-align: center;
   padding: 20px;
@@ -1591,13 +1591,13 @@ input[type="number"] {
 }
 
 .failover-hint-icon {
-  font-size: 16px;
+  font-size: 1rem;
   flex-shrink: 0;
   line-height: 1.5;
 }
 
 .failover-hint-text {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: #8B7E6A;
 }
 
@@ -1609,7 +1609,7 @@ input[type="number"] {
 }
 
 .auto-fetch-btn {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #2196F3;
   background: #EEF7FF;
@@ -1679,7 +1679,7 @@ input[type="number"] {
   border-radius: 50%;
   background: var(--primary-light);
   color: var(--primary);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -1721,14 +1721,14 @@ input[type="number"] {
 }
 
 .record-company {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text);
   margin-bottom: 4px;
 }
 
 .record-plate {
-  font-size: 13px;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   font-family: 'SF Mono', 'Menlo', monospace;
   background: var(--input-bg);
@@ -1743,7 +1743,7 @@ input[type="number"] {
 }
 
 .record-time {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-light);
   margin-bottom: 6px;
 }
@@ -1755,7 +1755,7 @@ input[type="number"] {
 }
 
 .record-tag {
-  font-size: 10px;
+  font-size: 0.6rem;
   padding: 2px 6px;
   border-radius: 4px;
   background: var(--primary-light);
@@ -1764,7 +1764,7 @@ input[type="number"] {
 }
 
 .record-amount {
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--primary);
   margin-bottom: 12px;
@@ -1782,7 +1782,7 @@ input[type="number"] {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-secondary);
 }
 
@@ -1812,7 +1812,7 @@ input[type="number"] {
   background: transparent;
   color: #E74C3C;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -1858,7 +1858,7 @@ input[type="number"] {
 }
 
 .confirm-message {
-  font-size: 15px;
+  font-size: 0.95rem;
   font-weight: 500;
   color: var(--text);
   text-align: center;
@@ -1871,7 +1871,7 @@ input[type="number"] {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--primary);
   background: var(--primary-light);
@@ -1896,7 +1896,7 @@ input[type="number"] {
   flex: 1;
   height: 42px;
   border-radius: 21px;
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   border: none;
@@ -1989,7 +1989,7 @@ input[type="number"] {
   color: white;
   padding: 10px 24px;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 0.8rem;
   opacity: 0;
   transition: all 0.3s ease;
   pointer-events: none;
@@ -2051,7 +2051,7 @@ input[type="number"] {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--primary);
   background: var(--primary-light);
