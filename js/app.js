@@ -2192,11 +2192,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="provider-card-meta">${escapeHtml(p.baseUrl)}</div>
         ${dualModels.length > 0 ? `<div class="provider-card-dual-models">${dualModels.map(m => `<span class="provider-model-chip" style="background:#EEF7FF;color:#2196F3;">${escapeHtml(m)}</span>`).join('')}</div>` : ''}
+        ${!isDual || !dualEnabled ? `
         <select class="provider-model-select" data-action="switchModel" data-id="${p.id}">
           ${(p.models || []).map((m) =>
             `<option value="${escapeHtml(m)}"${m === (p.selectedModel || p.models[0]) ? ' selected' : ''}>${escapeHtml(m)}</option>`
           ).join('')}
         </select>
+        ` : ''}
         <div class="provider-card-actions">
           <button class="provider-action-btn provider-action-select" data-action="select" data-id="${p.id}">${isActive ? '当前使用' : '使用此模型'}</button>
           <button class="provider-action-btn provider-action-test" data-action="test" data-id="${p.id}">测试</button>
