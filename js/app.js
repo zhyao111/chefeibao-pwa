@@ -2482,20 +2482,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showToast(`正在测试 ${modelsToTest.length} 个模型...`);
 
-    // 获取一张测试图片
-    const imgSrc = imgPreview.src;
-    if (!imgSrc || imgPreviewWrap.style.display === 'none') {
-      showToast('请先上传一张图片用于测试');
-      return;
-    }
+    // 使用默认测试图片（一张简单的测试图）
+    const testCanvas = document.createElement('canvas');
+    testCanvas.width = 100;
+    testCanvas.height = 100;
+    const ctx = testCanvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, 100, 100);
+    ctx.fillStyle = '#000000';
+    ctx.font = '14px Arial';
+    ctx.fillText('TEST', 25, 55);
+    const testDataUrl = testCanvas.toDataURL('image/jpeg', 0.8);
+    const testBase64 = testDataUrl.split(',')[1] || '';
 
     const results = await Promise.allSettled(
       modelsToTest.map(async ({ provider: p, model }) => {
         const startTime = Date.now();
         try {
-          const base64 = imgSrc.split(',')[1] || '';
           const testProvider = { ...p, selectedModel: model };
-          const result = await callProviderAPI(testProvider, model, imgSrc, base64, 'image/jpeg');
+          const result = await callProviderAPI(testProvider, model, testDataUrl, testBase64, 'image/jpeg');
           return { provider: p.name || p.id, model, success: true, time: ((Date.now() - startTime) / 1000).toFixed(1) };
         } catch (e) {
           return { provider: p.name || p.id, model, success: false, error: e.message, time: ((Date.now() - startTime) / 1000).toFixed(1) };
