@@ -1581,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: Date.now(),
       company: insuranceCompany.value || '未填写',
       plate: plateNumber.value || '未填写',
-      time: new Date().toLocaleDateString('zh-CN'),
+      time: new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }),
       ...data,
       ...results,
       localImage: null,
@@ -1963,10 +1963,11 @@ document.addEventListener('DOMContentLoaded', () => {
       item.dataset.recordId = r.id;
 
       // 构建费用明细
-      const feeItems = [];
-      if (r.compulsoryFee > 0) feeItems.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#E8734A;"></span>交强险 ${formatMoney(r.compulsoryFee)}</span>`);
-      if (r.commercialFee > 0) feeItems.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#E8A04A;"></span>商业险 ${formatMoney(r.commercialFee)}</span>`);
-      if (r.nonVehicleFee > 0) feeItems.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#6CB4A8;"></span>随车非车 ${formatMoney(r.nonVehicleFee)}</span>`);
+      const feeParts = [];
+      if (r.compulsoryFee > 0) feeParts.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#E8734A;"></span>交强险 ${formatMoney(r.compulsoryFee)}</span>`);
+      if (r.commercialFee > 0) feeParts.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#E8A04A;"></span>商业险 ${formatMoney(r.commercialFee)}</span>`);
+      if (r.nonVehicleFee > 0) feeParts.push(`<span class="record-fee-item"><span class="record-fee-dot" style="background:#6CB4A8;"></span>随车非车 ${formatMoney(r.nonVehicleFee)}</span>`);
+      const feeHtml = feeParts.join('<span class="record-fee-separator">/</span>');
 
       item.innerHTML = `
         <div class="record-item-top">
@@ -1979,7 +1980,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
         <div class="record-amount">${formatMoney(r.afterTax || 0)}</div>
-        ${feeItems.length > 0 ? `<div class="record-fees">${feeItems.join('')}</div>` : ''}
+        ${feeParts.length > 0 ? `<div class="record-fees">${feeHtml}</div>` : ''}
         <div class="record-bottom">
           <button class="record-delete" data-id="${r.id}" title="删除记录">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
