@@ -2167,6 +2167,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const dualCfg = getDualConfig();
     const dualEnabled = dualCfg.enabled;
 
+    // 更新页面标题
+    const modelsTitle = document.querySelector('#subpageModels .subpage-title');
+    if (modelsTitle) {
+      modelsTitle.textContent = dualEnabled ? '识别模型配置（多重识别）' : '识别模型配置';
+    }
+
     // 收集参与多重识别的供应商及其模型
     const dualInfoMap = new Map();
     if (dualEnabled) {
@@ -2178,7 +2184,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    providers.forEach((p) => {
+    // 排序：使用的在前，未使用的在后
+    const sortedProviders = [...providers].sort((a, b) => {
+      const aDual = dualInfoMap.has(a.id) ? 0 : 1;
+      const bDual = dualInfoMap.has(b.id) ? 0 : 1;
+      return aDual - bDual;
+    });
+
+    sortedProviders.forEach((p) => {
       const isActive = p.id === activeId;
       const isDual = dualInfoMap.has(p.id);
       const dualModels = dualInfoMap.get(p.id) || [];
@@ -2188,11 +2201,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="provider-card-header">
           <span class="provider-card-dot"></span>
           <span class="provider-card-name">${escapeHtml(p.name || p.id)}</span>
-          ${isDual ? '<span class="provider-card-badge" style="background:#E8F5E9;color:#4CAF50;">多重识别使用中</span>' : (isActive ? '<span class="provider-card-badge">使用中</span>' : '')}
+          ${dualEnabled ? (isDual ? '<span class="provider-card-badge" style="background:var(--primary-light);color:var(--primary);">多重识别使用中</span>' : '<span class="provider-card-badge" style="background:#F5F5F5;color:#999;">未使用</span>') : (isActive ? '<span class="provider-card-badge">使用中</span>' : '')}
         </div>
         <div class="provider-card-meta">${escapeHtml(p.baseUrl)}</div>
-        ${dualModels.length > 0 ? `<div class="provider-card-dual-models">${dualModels.map(m => `<span class="provider-model-chip" style="background:#E8F5E9;color:#4CAF50;">${escapeHtml(m)}</span>`).join('')}</div>` : ''}
-        ${!isDual || !dualEnabled ? `
+        ${dualModels.length > 0 ? `<div class="provider-card-dual-models">${dualModels.map(m => `<span class="provider-model-chip" style="background:var(--primary-light);color:var(--primary);">${escapeHtml(m)}</span>`).join('')}</div>` : ''}
+        ${!dualEnabled ? `
         <select class="provider-model-select" data-action="switchModel" data-id="${p.id}">
           ${(p.models || []).map((m) =>
             `<option value="${escapeHtml(m)}"${m === (p.selectedModel || p.models[0]) ? ' selected' : ''}>${escapeHtml(m)}</option>`
@@ -2200,7 +2213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </select>
         ` : ''}
         <div class="provider-card-actions">
-          ${!(isDual && dualEnabled) ? `<button class="provider-action-btn provider-action-select" data-action="select" data-id="${p.id}">${isActive ? '当前使用' : '使用此模型'}</button>` : ''}
+          ${!dualEnabled ? `<button class="provider-action-btn provider-action-select" data-action="select" data-id="${p.id}">${isActive ? '当前使用' : '使用此模型'}</button>` : ''}
           <button class="provider-action-btn provider-action-test" data-action="test" data-id="${p.id}">测试</button>
           <button class="provider-action-btn provider-action-edit" data-action="edit" data-id="${p.id}">编辑</button>
           <button class="provider-action-btn provider-action-delete" data-action="delete" data-id="${p.id}">删除</button>
