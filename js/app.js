@@ -337,9 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 重新获取数据（包含新填入的费率）
-    const newData = getFormData();
-
     // 检查有保费和费率但没有到期时间的情况
     const missingExpiry = [];
     if (newData.compulsoryAmount > 0 && newData.compulsoryRate > 0 && !newData.compulsoryExpiry) {
