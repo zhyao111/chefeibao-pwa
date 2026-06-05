@@ -1063,6 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showConfirm(message, onOk) {
     confirmMessage.textContent = message;
+    confirmViewImg.style.display = 'none';
     confirmCallback = onOk;
     confirmOverlay.style.display = 'flex';
   }
