@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
       html += '<div class="confirm-card-title" style="color:#E8734A;">交强险</div>';
       html += `<div class="confirm-row"><span>保费</span><span class="confirm-value">${data.compulsoryAmount} 元</span></div>`;
       html += `<div class="confirm-row"><span>费率</span><span class="confirm-value">${data.compulsoryRate}%</span></div>`;
-      if (data.compulsoryExpiry) html += `<div class="confirm-row"><span>到期</span><span class="confirm-value">${data.compulsoryExpiry}</span></div>`;
+      if (data.compulsoryExpiry) html += `<div class="confirm-row"><span>到期</span><span class="confirm-value">${formatExpiryDisplay(data.compulsoryExpiry)}</span></div>`;
       html += '</div>';
     }
 
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
       html += '<div class="confirm-card-title" style="color:#E8A04A;">商业险</div>';
       html += `<div class="confirm-row"><span>保费</span><span class="confirm-value">${data.commercialAmount} 元</span></div>`;
       html += `<div class="confirm-row"><span>费率</span><span class="confirm-value">${data.commercialRate}%</span></div>`;
-      if (data.commercialExpiry) html += `<div class="confirm-row"><span>到期</span><span class="confirm-value">${data.commercialExpiry}</span></div>`;
+      if (data.commercialExpiry) html += `<div class="confirm-row"><span>到期</span><span class="confirm-value">${formatExpiryDisplay(data.commercialExpiry)}</span></div>`;
       html += '</div>';
     }
 
@@ -2063,6 +2063,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     hideSubpages();
     showToast('已恢复记录数据');
+  }
+
+  function formatExpiryDisplay(expiryStr) {
+    if (!expiryStr) return '';
+    // 将 "2025年3月15日" 格式化为 "2025年 3月 15日"
+    return expiryStr.replace(/(\d{4})年(\d{1,2})月(\d{1,2})日/, '$1年 $2月 $3日')
+                     .replace(/(\d{1,2})月(\d{1,2})日/, '$1月 $2日');
   }
 
   function formatRecordTime(timeStr) {
