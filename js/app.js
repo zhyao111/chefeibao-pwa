@@ -430,13 +430,13 @@ document.addEventListener('DOMContentLoaded', () => {
   "plate": "车牌号",
   "compulsoryAmount": 交强险保费金额(数字),
   "compulsoryRate": 交强险手续费比例(数字),
-  "compulsoryExpiry": "交强险保险到期时间，格式如：1月15日",
+  "compulsoryExpiry": "交强险保险到期时间，格式如：2025年3月15日",
   "commercialAmount": 商业险保费金额(数字),
   "commercialRate": 商业险手续费比例(数字),
-  "commercialExpiry": "商业险保险到期时间，格式如：1月15日",
+  "commercialExpiry": "商业险保险到期时间，格式如：2025年3月15日",
   "nonVehicleAmount": 随车非车保费金额(数字),
   "nonVehicleRate": 随车非车保费手续费比例(数字),
-  "nonVehicleExpiry": "随车非车保险到期时间，格式如：1月15日",
+  "nonVehicleExpiry": "随车非车保险到期时间，格式如：2025年3月15日",
   "vehicleTax": 车船税金额(数字),
   "sections": {
     "compulsory": { "y_start": 0.1, "y_end": 0.3 },
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 - sections 字段：返回各保险板块和合计区域在图片中的垂直位置比例（0-1），y_start 为区域顶部，y_end 为区域底部。summary 为合计/总计/保费合计等汇总区域
 注意：
 - 所有金额单位为元，手续费比例为百分比数字（如 5 表示 5%）
-- 到期时间格式统一为"X月X日"，如"3月20日"
+- 到期时间格式统一为"XXXX年X月X日"，如"2025年3月15日"，必须包含年份
 - 如果某个字段在图片中找不到，对应值填 0 或空字符串
 - 只返回 JSON，不要返回其他内容`;
 
