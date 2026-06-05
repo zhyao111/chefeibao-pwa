@@ -2302,8 +2302,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (!hasAvailable) {
-      selectDualProvider.innerHTML = '<option value="" disabled selected>暂无可选择的供应商和模型</option>';
+      selectDualProvider.innerHTML = '<option value="" disabled selected>暂无可选择的供应商</option>';
+      selectDualProvider.disabled = true;
+      selectDualProvider.classList.add('select-disabled');
     } else {
+      selectDualProvider.disabled = false;
+      selectDualProvider.classList.remove('select-disabled');
       selectDualProvider.innerHTML = '<option value="">选择供应商和模型...</option>';
       // 重新填充
       providers.forEach((p) => {
