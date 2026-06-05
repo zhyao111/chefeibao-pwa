@@ -769,7 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dialog.style.maxHeight = '80vh';
       dialog.style.overflow = 'auto';
 
-      const models = succeeded.map(r => `${r.providerName}·${r.modelName}`);
+      const providerNames = succeeded.map(r => r.providerName);
 
       let html = '<div style="text-align:left;font-size:14px;">';
       html += '<div style="font-weight:600;margin-bottom:10px;color:#E74C3C;">⚠️ 以下字段两个模型识别结果不一致</div>';
@@ -785,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
         values.forEach((val, vi) => {
           const displayVal = (val === 0 || val === '') ? '未识别到' : val;
           html += `<div class="conflict-option" data-field="${f}" data-value="${val}" data-idx="${idx}">`;
-          html += `<span style="color:var(--text-secondary);font-size:12px;">${models[vi]}</span>`;
+          html += `<span style="color:var(--text-secondary);font-size:12px;">${providerNames[vi]}</span>`;
           html += `<span style="font-weight:600;color:var(--text);">${displayVal}</span>`;
           html += `</div>`;
         });
@@ -2085,6 +2085,35 @@ document.addEventListener('DOMContentLoaded', () => {
     cfg.models.push(id);
     saveDualConfig(cfg);
     renderDualConfigUI();
+  });
+
+  // 预览冲突弹窗
+  const btnPreviewConflict = $('#btnPreviewConflict');
+  btnPreviewConflict.addEventListener('click', () => {
+    const mockResults = [
+      {
+        providerName: '小米',
+        data: {
+          company: '中国人保', plate: '粤A12345',
+          compulsoryAmount: 950, compulsoryExpiry: '2025年9月15日',
+          commercialAmount: 3500, commercialExpiry: '2025年12月20日',
+          nonVehicleAmount: 800, nonVehicleExpiry: '2025年11月10日',
+          vehicleTax: 420,
+        }
+      },
+      {
+        providerName: '千问',
+        data: {
+          company: '人保财险', plate: '粤A12345',
+          compulsoryAmount: 950.5, compulsoryExpiry: '2025年9月15日',
+          commercialAmount: 3480, commercialExpiry: '2025年12月20日',
+          nonVehicleAmount: 850, nonVehicleExpiry: '2025年11月10日',
+          vehicleTax: 420,
+        }
+      }
+    ];
+    const mockConflicts = ['company', 'compulsoryAmount', 'commercialAmount', 'nonVehicleAmount'];
+    showConflictDialog(mockConflicts, mockResults);
   });
 
   // 初始化 badge
