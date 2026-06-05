@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 获取配置的模型对应的提供商和模型
       const providers = getProviders();
-      const modelsToUse = dualCfg.models
+      let modelsToUse = dualCfg.models
         .map(item => {
           const p = providers.find(x => x.id === item.providerId);
           return p ? { provider: p, model: item.model } : null;
@@ -625,6 +625,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (modelsToUse.length <= 1) {
         // 配置的模型不够，降级为单模型
+        const p = modelsToUse[0]?.provider || provider;
+        const result = await tryWithFailover(p, file, base64, dataUrl);
+        imgPreviewStatus.textContent = '识别完成';
+        imgPreviewStatus.className = 'img-preview-status';
+        applyOCRResult(result.data);
+        showToast('识别完成，已自动填入数据');
+        return;
+      }
+
+      // 如果模型数量超过配置的识别数，让用户选择不使用的模型
+      const maxCount = dualCfg.count || 2;
+      if (modelsToUse.length > maxCount) {
+        const excluded = await showExcludeModelsDialog(modelsToUse, maxCount);
+        if (excluded !== null) {
+          modelsToUse = modelsToUse.filter((_, i) => !excluded.includes(i));
+        }
+      }
+
+      if (modelsToUse.length <= 1) {
         const p = modelsToUse[0]?.provider || provider;
         const result = await tryWithFailover(p, file, base64, dataUrl);
         imgPreviewStatus.textContent = '识别完成';
@@ -748,6 +767,89 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return { data: merged, conflictCount: conflictFields.length, conflictFields };
+  }
+
+  // ---- 排除模型弹窗 ----
+  function showExcludeModelsDialog(models, maxCount) {
+    return new Promise((resolve) => {
+      const excludeCount = models.length - maxCount;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'confirm-overlay';
+      overlay.style.zIndex = '1100';
+
+      const dialog = document.createElement('div');
+      dialog.className = 'confirm-dialog';
+      dialog.style.maxWidth = '340px';
+      dialog.style.maxHeight = '80vh';
+      dialog.style.overflow = 'auto';
+
+      let html = '<div class="confirm-dialog-content">';
+      html += `<div class="confirm-dialog-title" style="color:#E74C3C;">⚠️ 已添加 ${models.length} 个模型</div>`;
+      html += `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">识别模型数为 ${maxCount}，请选择 ${excludeCount} 个不使用的模型：</div>`;
+
+      models.forEach((item, i) => {
+        html += `<div class="exclude-model-item" data-idx="${i}" style="display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:6px;background:var(--card-bg);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.15s;">`;
+        html += `<span class="exclude-checkbox" style="width:20px;height:20px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;"></span>`;
+        html += `<div style="flex:1;"><div style="font-weight:500;font-size:14px;">${item.provider.name || item.provider.id}</div><div style="font-size:12px;color:var(--text-secondary);">${item.model}</div></div>`;
+        html += '</div>';
+      });
+
+      html += '<div style="display:flex;gap:10px;margin-top:16px;">';
+      html += '<button class="confirm-btn confirm-cancel" id="excludeCancel" style="flex:1;">取消</button>';
+      html += '<button class="confirm-btn confirm-ok" id="excludeConfirm" style="flex:1;">确定</button>';
+      html += '</div>';
+      html += '</div>';
+
+      dialog.innerHTML = html;
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+
+      // 记录选择
+      const excludedIndices = new Set();
+
+      // 点击选择/取消
+      overlay.querySelectorAll('.exclude-model-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const idx = parseInt(item.dataset.idx, 10);
+          if (excludedIndices.has(idx)) {
+            excludedIndices.delete(idx);
+            item.style.borderColor = 'var(--border)';
+            item.style.background = 'var(--card-bg)';
+            item.querySelector('.exclude-checkbox').style.background = 'transparent';
+            item.querySelector('.exclude-checkbox').innerHTML = '';
+          } else {
+            if (excludedIndices.size >= excludeCount) {
+              showToast(`最多选择 ${excludeCount} 个不使用`);
+              return;
+            }
+            excludedIndices.add(idx);
+            item.style.borderColor = '#E74C3C';
+            item.style.background = '#FFF5F5';
+            item.querySelector('.exclude-checkbox').style.background = '#E74C3C';
+            item.querySelector('.exclude-checkbox').innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+          }
+        });
+      });
+
+      // 确定
+      overlay.querySelector('#excludeConfirm').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (excludedIndices.size !== excludeCount) {
+          showToast(`请选择 ${excludeCount} 个不使用的模型`);
+          return;
+        }
+        document.body.removeChild(overlay);
+        resolve([...excludedIndices]);
+      });
+
+      // 取消
+      overlay.querySelector('#excludeCancel').addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.body.removeChild(overlay);
+        resolve(null);
+      });
+    });
   }
 
   // ---- 冲突选择弹窗 ----
