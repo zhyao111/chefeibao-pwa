@@ -2168,4 +2168,91 @@ input[type="number"] {
   .confirm-value {
     color: var(--text) !important;
   }
+
+  /* Provider Card Dark Mode */
+  .provider-card {
+    background: var(--card-bg);
+    border-color: #444;
+  }
+
+  .provider-card.active {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+
+  .provider-card-dot {
+    background: #666;
+  }
+
+  .provider-card.active .provider-card-dot {
+    background: #4CAF50;
+    box-shadow: 0 0 0 4px rgba(76,175,80,0.2);
+  }
+
+  .provider-card-name {
+    color: var(--text);
+  }
+
+  .provider-card-meta {
+    color: var(--text-secondary);
+  }
+
+  .provider-model-chip {
+    background: #1A3A4A !important;
+    color: #64B5F6 !important;
+  }
+
+  .provider-card-dual-models {
+    border-top: 1px solid #444;
+    padding-top: 10px;
+  }
+
+  .provider-model-select {
+    background: var(--input-bg);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .provider-action-select {
+    background: var(--primary);
+    color: white;
+  }
+
+  .provider-action-test {
+    background: #1A3A4A;
+    color: #64B5F6;
+  }
+
+  .provider-action-edit {
+    background: #333;
+    color: var(--text-secondary);
+  }
+
+  .provider-action-delete {
+    background: #333;
+    color: #EF5350;
+  }
+
+  .provider-action-select:active {
+    background: var(--primary-dark);
+  }
+
+  .provider-action-test:active {
+    background: #15303D;
+  }
+
+  .provider-action-edit:active {
+    background: #444;
+  }
+
+  .provider-action-delete:active {
+    background: #3D2222;
+  }
+
+  /* Select Disabled Dark Mode */
+  .select-disabled {
+    background: #333 !important;
+    border-color: #555 !important;
+    color: #888 !important;
+  }
 }
