@@ -1577,14 +1577,25 @@ input[type="number"] {
 .record-item-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 8px;
 }
 
-.record-plate {
-  font-size: 15px;
+.record-plate-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.record-company {
+  font-size: 14px;
   font-weight: 600;
   color: var(--text);
+}
+
+.record-plate {
+  font-size: 13px;
+  color: var(--text-secondary);
 }
 
 .record-time {

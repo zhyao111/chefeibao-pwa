@@ -1664,7 +1664,10 @@ document.addEventListener('DOMContentLoaded', () => {
       item.dataset.recordId = r.id;
       item.innerHTML = `
         <div class="record-item-header">
-          <span class="record-plate">${escapeHtml(r.company || '未填写')} · ${escapeHtml(r.plate || '未填写')}</span>
+          <div class="record-plate-wrap">
+            <span class="record-company">${escapeHtml(r.company || '未填写')}</span>
+            <span class="record-plate">${escapeHtml(r.plate || '未填写')}</span>
+          </div>
           <span class="record-time">${escapeHtml(r.time)}</span>
         </div>
         <div class="record-amount">${formatMoney(r.afterTax || 0)}</div>
