@@ -460,22 +460,109 @@ document.addEventListener('DOMContentLoaded', () => {
 - 未找到的字段填0或空字符串
 - 只返回JSON`;
 
-  // ---- Recognize Image ----
+  // ---- Recognize Image (dual-model parallel) ----
   async function recognizeImage(file, provider) {
     try {
       const base64 = await fileToBase64(file);
       const dataUrl = `data:${file.type || 'image/jpeg'};base64,${base64}`;
-      const result = await tryWithFailover(provider, file, base64, dataUrl);
-      imgPreviewStatus.textContent = `${result.providerName} · ${result.modelName} — 识别完成`;
+
+      // 获取所有可用的提供商
+      const allProviders = getProviders().filter(p => p.models && p.models.length > 0);
+      if (allProviders.length === 0) {
+        throw new Error('请先配置识别模型');
+      }
+
+      // 如果只有一个提供商，走原有逻辑
+      if (allProviders.length === 1) {
+        const result = await tryWithFailover(allProviders[0], file, base64, dataUrl);
+        imgPreviewStatus.textContent = `${result.providerName} · ${result.modelName} — 识别完成`;
+        imgPreviewStatus.className = 'img-preview-status';
+        applyOCRResult(result.data);
+        showToast('识别完成，已自动填入数据');
+        return;
+      }
+
+      // 多个提供商：同时识别，取最多2个
+      const providersToUse = allProviders.slice(0, 2);
+      imgPreviewStatus.textContent = '正在双重识别中...';
+      imgPreviewStatus.className = 'img-preview-status loading';
+
+      const results = await Promise.allSettled(
+        providersToUse.map(p => tryWithFailover(p, file, base64, dataUrl))
+      );
+
+      // 收集成功的结果
+      const succeeded = results
+        .filter(r => r.status === 'fulfilled')
+        .map(r => r.value);
+
+      if (succeeded.length === 0) {
+        throw new Error('所有模型识别失败');
+      }
+
+      // 如果只有一个成功，直接用
+      if (succeeded.length === 1) {
+        const r = succeeded[0];
+        imgPreviewStatus.textContent = `${r.providerName} · ${r.modelName} — 识别完成（仅单模型）`;
+        imgPreviewStatus.className = 'img-preview-status';
+        applyOCRResult(r.data);
+        showToast('识别完成，已自动填入数据');
+        return;
+      }
+
+      // 两个都成功：逐字段对比合并
+      const merged = mergeOCRResults(succeeded[0].data, succeeded[1].data);
+      const names = succeeded.map(r => `${r.providerName}·${r.modelName}`).join(' vs ');
+      imgPreviewStatus.textContent = `${names} — 双重识别完成`;
       imgPreviewStatus.className = 'img-preview-status';
-      applyOCRResult(result.data);
-      showToast('识别完成，已自动填入数据');
+      applyOCRResult(merged.data);
+      showToast(merged.conflictCount > 0
+        ? `识别完成，${merged.conflictCount} 个字段有差异已标红`
+        : '双重识别一致，已自动填入数据');
     } catch (err) {
       console.error('OCR error:', err);
       imgPreviewStatus.textContent = '识别失败：' + (err.message || '未知错误');
       imgPreviewStatus.className = 'img-preview-status error';
       showToast('识别失败，请检查配置后重试');
     }
+  }
+
+  // ---- 合并两个模型的识别结果 ----
+  function mergeOCRResults(dataA, dataB) {
+    const fields = [
+      'company', 'plate',
+      'compulsoryAmount', 'compulsoryRate', 'compulsoryExpiry',
+      'commercialAmount', 'commercialRate', 'commercialExpiry',
+      'nonVehicleAmount', 'nonVehicleRate', 'nonVehicleExpiry',
+      'vehicleTax',
+    ];
+
+    const merged = {};
+    const conflictFields = [];
+
+    for (const f of fields) {
+      const valA = dataA[f];
+      const valB = dataB[f];
+
+      if (valA === valB) {
+        merged[f] = valA;
+      } else if (valA === 0 || valA === '') {
+        merged[f] = valB; // A 没识别到，用 B
+      } else if (valB === 0 || valB === '') {
+        merged[f] = valA; // B 没识别到，用 A
+      } else {
+        // 两个都不一样且都有值：优先用数值更大的（更可能是正确的完整数据）
+        // 对于字符串字段，用 A
+        if (typeof valA === 'number') {
+          merged[f] = Math.max(valA, valB);
+        } else {
+          merged[f] = valA;
+        }
+        conflictFields.push(f);
+      }
+    }
+
+    return { data: merged, conflictCount: conflictFields.length, conflictFields };
   }
 
   async function tryWithFailover(provider, file, base64, dataUrl) {
