@@ -531,6 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
       nonVehicleRate: num(parsed.nonVehicleRate),
       nonVehicleExpiry: parsed.nonVehicleExpiry || '',
       vehicleTax: num(parsed.vehicleTax),
+      sections: parsed.sections || null,
     };
   }
 
