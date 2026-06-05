@@ -2546,9 +2546,9 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then((json) => {
         let models = (json.data || []).map((m) => m.id).filter(Boolean);
-        // Xiaomi: only keep mimo-v2.5 models
+        // Xiaomi: only keep mimo-v2.5 (mimo-v2.5-pro doesn't support image)
         if (baseUrl.includes('xiaomimimo')) {
-          models = models.filter((m) => m === 'mimo-v2.5' || m === 'mimo-v2.5-pro');
+          models = models.filter((m) => m === 'mimo-v2.5');
         }
         // Qwen: only keep qwen3.6-flash
         if (baseUrl.includes('dashscope')) {
