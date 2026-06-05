@@ -212,11 +212,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   RATE_FIELDS.forEach(({ el, label, idx }) => {
     el.addEventListener('click', () => {
-      showRateEditDialog(label, idx);
+      showRateEditDialog(label, idx, el);
     });
   });
 
-  function showRateEditDialog(label, idx) {
+  function showRateEditDialog(label, idx, targetEl) {
     // 解析当前快速填写的值
     const currentRates = parseTripleInput(quickRate.value) || [0, 0, 0];
     const currentValue = currentRates[idx] || '';
@@ -247,10 +247,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => input.focus(), 100);
 
     // 确定
-    overlay.querySelector('#rateEditOk').addEventListener('click', () => {
+    overlay.querySelector('#rateEditOk').addEventListener('click', (e) => {
+      e.stopPropagation();
       const val = parseFloat(input.value) || 0;
       // 更新对应的费率输入框
-      el.value = val;
+      targetEl.value = val;
       // 同步到快速填写
       const rates = parseTripleInput(quickRate.value) || [0, 0, 0];
       rates[idx] = val;
@@ -259,7 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 取消
-    overlay.querySelector('#rateEditCancel').addEventListener('click', () => {
+    overlay.querySelector('#rateEditCancel').addEventListener('click', (e) => {
+      e.stopPropagation();
       document.body.removeChild(overlay);
     });
 
