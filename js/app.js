@@ -586,12 +586,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // 多个模型：同时识别
-      imgPreviewStatus.textContent = '正在多重识别中...';
+      // 多个模型：同时识别，显示进度
+      const total = providersToUse.length;
+      let completed = 0;
+      imgPreviewStatus.textContent = `正在识别 (0/${total})...`;
       imgPreviewStatus.className = 'img-preview-status loading';
 
       const results = await Promise.allSettled(
-        providersToUse.map(p => tryWithFailover(p, file, base64, dataUrl))
+        providersToUse.map(async (p) => {
+          const result = await tryWithFailover(p, file, base64, dataUrl);
+          completed++;
+          imgPreviewStatus.textContent = `正在识别 (${completed}/${total})...`;
+          return result;
+        })
       );
 
       // 收集成功的结果
@@ -1367,22 +1374,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const { Filesystem } = window.Capacitor?.Plugins || {};
     if (!Filesystem) return null;
 
+    // 压缩图片
+    const compressedBase64 = await compressImage(dataUrl, 1600, 0.8);
+
     // 确保目录存在
     await Filesystem.mkdir({ path: 'chefeibao_images', directory: 'DATA', recursive: true });
 
-    // 从 dataUrl 提取 base64 数据
-    const base64Data = dataUrl.split(',')[1] || '';
     const fileName = `img_${recordId}.jpg`;
     const filePath = `chefeibao_images/${fileName}`;
 
     await Filesystem.writeFile({
       path: filePath,
-      data: base64Data,
+      data: compressedBase64,
       directory: 'DATA',
       encoding: 'base64',
     });
 
     return filePath;
+  }
+
+  function compressImage(dataUrl, maxSize, quality) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+
+        if (w > maxSize || h > maxSize) {
+          if (w > h) {
+            h = Math.round(h * maxSize / w);
+            w = maxSize;
+          } else {
+            w = Math.round(w * maxSize / h);
+            h = maxSize;
+          }
+        }
+
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed.split(',')[1] || '');
+      };
+      img.src = dataUrl;
+    });
   }
 
   async function deleteLocalImage(filePath) {

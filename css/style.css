@@ -1526,33 +1526,61 @@ input[type="number"] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 0;
+  padding: 40px 0;
   color: var(--text-light);
 }
 
 .empty-icon-settings {
-  width: 72px;
-  height: 72px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   background: var(--primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   color: var(--primary);
-  opacity: 0.6;
 }
 
 .empty-state-settings .empty-title {
-  font-size: 15px;
+  font-size: clamp(15px, 3vw, 17px);
   font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .empty-state-settings .empty-subtitle {
-  font-size: 12px;
+  font-size: clamp(12px, 2.4vw, 14px);
   color: var(--text-light);
+  margin-bottom: 24px;
+}
+
+.empty-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(12px, 2.4vw, 13px);
+  color: var(--text-secondary);
+}
+
+.empty-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 /* ========== Record List (Settings) ========== */
@@ -1860,3 +1888,118 @@ input[type="number"] {
 .card:nth-child(7) { animation-delay: 0.12s; }
 .card:nth-child(8) { animation-delay: 0.14s; }
 .card:nth-child(9) { animation-delay: 0.16s; }
+
+/* ========== Dark Mode ========== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1A1A1A;
+    --card-bg: #2A2A2A;
+    --primary: #E8734A;
+    --primary-dark: #D4623A;
+    --primary-light: #3D2A22;
+    --text: #F0F0F0;
+    --text-secondary: #AAAAAA;
+    --text-light: #777777;
+    --input-bg: #333333;
+    --border: #444444;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .settings-menu-group,
+  .card,
+  .record-item,
+  .provider-card,
+  .failover-queue-item,
+  .modal-sheet,
+  .confirm-dialog {
+    background: var(--card-bg);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .settings-menu-item:active,
+  .record-item:active {
+    background: #333333;
+  }
+
+  .settings-menu-icon {
+    background: var(--primary-light);
+  }
+
+  .btn-reset {
+    background: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text-secondary);
+  }
+
+  .input-field {
+    background: var(--input-bg);
+    border-color: var(--border);
+    color: var(--text);
+  }
+
+  .input-group .input-field {
+    background: var(--primary-light);
+  }
+
+  .img-preview-status {
+    background: rgba(42,42,42,0.95);
+  }
+
+  .record-detail {
+    background: #333333;
+  }
+
+  .record-time {
+    background: #333333;
+  }
+
+  .record-plate {
+    background: #333333;
+  }
+
+  .confirm-cancel,
+  .modal-btn-cancel {
+    background: #444444;
+    color: var(--text);
+  }
+
+  .result-highlight {
+    background: var(--primary-light);
+    border-color: var(--primary);
+  }
+
+  .toast {
+    background: rgba(255,255,255,0.9);
+    color: #222;
+  }
+
+  .bottom-nav {
+    background: var(--card-bg);
+    border-top-color: #333333;
+  }
+
+  .toggle-track {
+    background: #555;
+  }
+
+  .toggle-switch input:checked + .toggle-track {
+    background: var(--primary);
+  }
+
+  .failover-hint {
+    background: #2A2A2A;
+    border-color: #444;
+  }
+
+  .failover-hint-text {
+    color: #AAA;
+  }
+
+  .scroll-area::-webkit-scrollbar {
+    background: transparent;
+  }
+}

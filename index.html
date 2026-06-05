@@ -380,14 +380,30 @@
           </div>
           <div class="empty-state-settings" id="emptyStateSettings">
             <div class="empty-icon-settings">
-              <svg width="48" height="48" viewBox="0 0 64 64" fill="none">
-                <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" opacity="0.3"/>
-                <path d="M32 18v16l10 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M22 10l-4-4M42 10l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <svg width="64" height="64" viewBox="0 0 120 120" fill="none">
+                <rect x="20" y="30" width="80" height="65" rx="8" stroke="currentColor" stroke-width="2.5" opacity="0.2"/>
+                <path d="M40 65h40M40 78h25" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/>
+                <circle cx="85" cy="35" r="18" fill="var(--primary)" opacity="0.15"/>
+                <path d="M81 35l3 3 5-5" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+                <path d="M25 25l-5-5M95 25l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.2"/>
               </svg>
             </div>
             <p class="empty-title">暂无历史记录</p>
             <p class="empty-subtitle">计算完成后点击"保存到记录"</p>
+            <div class="empty-steps">
+              <div class="empty-step">
+                <span class="empty-step-num">1</span>
+                <span>上传报价单识别</span>
+              </div>
+              <div class="empty-step">
+                <span class="empty-step-num">2</span>
+                <span>核对数据并计算</span>
+              </div>
+              <div class="empty-step">
+                <span class="empty-step-num">3</span>
+                <span>保存到历史记录</span>
+              </div>
+            </div>
           </div>
           <div class="record-list-settings" id="recordListSettings"></div>
         </div>
