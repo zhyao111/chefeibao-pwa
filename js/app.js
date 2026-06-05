@@ -1545,9 +1545,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (providers.length === 0) return;
 
     const activeId = getActiveProviderId();
+    const dualCfg = getDualConfig();
+    const dualModelIds = dualCfg.enabled ? dualCfg.models : [];
 
     providers.forEach((p) => {
       const isActive = p.id === activeId;
+      const isDual = dualModelIds.includes(p.id);
       const card = document.createElement('div');
       card.className = 'provider-card' + (isActive ? ' active' : '');
       card.innerHTML = `
@@ -1555,6 +1558,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="provider-card-dot"></span>
           <span class="provider-card-name">${escapeHtml(p.name || p.id)}</span>
           ${isActive ? '<span class="provider-card-badge">使用中</span>' : ''}
+          ${isDual ? '<span class="provider-card-badge" style="background:#EEF7FF;color:#2196F3;">多重识别</span>' : ''}
         </div>
         <div class="provider-card-meta">${escapeHtml(p.baseUrl)}</div>
         <select class="provider-model-select" data-action="switchModel" data-id="${p.id}">
