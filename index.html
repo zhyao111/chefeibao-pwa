@@ -38,12 +38,11 @@
           top = Math.max(Math.round(window.innerWidth * 0.045), 30);
         }
 
-        // iOS — 首次检测可靠，但 resize 事件会在工具栏展开/收起时触发
-        // 此时 visualViewport 返回的是缩小后的可见区域，导致 bottom 变成 0
-        // 所以在 iOS 非 standalone 模式下，直接用固定值覆盖检测结果
+        // iOS PWA standalone 模式：bottom 由 JS 全权控制
+        // iOS Safari 浏览器模式：Safari 工具栏覆盖在内容上，不需要底部间距
+        // 否则导航栏上方会多出一块空白区
         if (isIOS && !isStandalone) {
-          // 底部 Safari 工具栏 49px
-          bottom = 49;
+          bottom = 0;
         }
 
         top = Math.max(top, 0);
