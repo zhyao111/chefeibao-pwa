@@ -670,6 +670,21 @@ document.addEventListener('DOMContentLoaded', () => {
       imgPreviewStatus.textContent = statusText;
       imgPreviewStatus.className = provider ? 'img-preview-status loading' : 'img-preview-status error';
 
+      // 选图后跳转到快速填写费率（延迟等图片渲染）
+      setTimeout(() => {
+        const scrollEl = document.querySelector('.tab-content.active .scroll-area');
+        if (scrollEl) {
+          const rateEl = document.getElementById('quickRate');
+          if (rateEl) {
+            scrollEl.scrollTop = rateEl.offsetTop - scrollEl.offsetTop - 20;
+          }
+        }
+        setTimeout(() => {
+          const rateEl = document.getElementById('quickRate');
+          if (rateEl) rateEl.focus();
+        }, 300);
+      }, 500);
+
       if (!provider) return;
 
       recognizeImage(file, provider);
@@ -1704,38 +1719,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function saveImageToLocal(dataUrl, recordId) {
-    const { Filesystem } = window.Capacitor?.Plugins || {};
-    if (!Filesystem) {
-      console.warn('[保存] Filesystem 插件不可用，跳过图片保存');
+    // PWA 没有 Capapcitor Filesystem，用 IndexedDB 存 base64
+    try {
+      const compressedBase64 = await compressImage(dataUrl, 1600, 0.8);
+      if (!compressedBase64) return null;
+      // 把压缩后的 base64 直接存到 record 的 localImage 字段
+      return 'data:image/jpeg;base64,' + compressedBase64;
+    } catch (e) {
+      console.warn('[保存] 图片保存失败:', e);
       return null;
     }
-    console.log('[保存] Filesystem 可用, dataUrl类型=' + typeof dataUrl + ' 长度=' + (dataUrl ? dataUrl.length : 0));
-
-    // 压缩图片
-    console.log('[保存] 开始压缩图片...');
-    const compressedBase64 = await compressImage(dataUrl, 1600, 0.8);
-    console.log('[保存] 压缩完成, base64长度=' + (compressedBase64 ? compressedBase64.length : 0));
-    if (!compressedBase64) {
-      console.warn('[保存] 图片压缩结果为空，跳过保存');
-      return null;
-    }
-
-    // 确保目录存在
-    await Filesystem.mkdir({ path: 'chefeibao_images', directory: 'DATA', recursive: true });
-
-    const fileName = `img_${recordId}.jpg`;
-    const filePath = `chefeibao_images/${fileName}`;
-    console.log('[保存] 写入文件: ' + filePath);
-
-    await Filesystem.writeFile({
-      path: filePath,
-      data: compressedBase64,
-      directory: 'DATA',
-      encoding: 'base64',
-    });
-
-    console.log('[保存] 文件写入成功');
-    return filePath;
   }
 
   function compressImage(dataUrl, maxSize, quality) {
@@ -2223,32 +2216,32 @@ document.addEventListener('DOMContentLoaded', () => {
       quickRate.value = `${record.compulsoryRate}/${record.commercialRate}/${record.nonVehicleRate}`;
     }
 
-    // 恢复图片
-    console.log('[恢复] record.localImage=' + record.localImage);
+    // 恢复图片 — PWA 图片保存在 localImage 的 data URL 中
     if (record.localImage) {
-      try {
-        const { Filesystem } = window.Capacitor?.Plugins || {};
-        console.log('[恢复] Filesystem 可用=' + !!Filesystem);
-        if (Filesystem) {
-          // 检查文件是否存在
-          console.log('[恢复] 检查文件: ' + record.localImage);
-          const statResult = await Filesystem.stat({ path: record.localImage, directory: 'DATA' });
-          console.log('[恢复] 文件存在, 大小=' + (statResult.size || '未知'));
-          const imageDataUrl = await readLocalImage(record.localImage);
-          console.log('[恢复] 读取结果: ' + (imageDataUrl ? '成功, 长度=' + imageDataUrl.length : '失败'));
-          if (imageDataUrl) {
-            imgPreview.src = imageDataUrl;
-            imgPreviewWrap.style.display = 'block';
-            imgPreviewStatus.textContent = '已恢复图片';
-            imgPreviewStatus.className = 'img-preview-status';
-            console.log('[恢复] 图片已设置到 imgPreview');
+      if (record.localImage.startsWith('data:')) {
+        // PWA 模式：base64 直接显示
+        imgPreview.src = record.localImage;
+        imgPreviewWrap.style.display = 'block';
+        imgPreviewStatus.textContent = '已恢复图片';
+        imgPreviewStatus.className = 'img-preview-status';
+      } else {
+        // APK 模式：使用 Capacitor Filesystem
+        try {
+          const { Filesystem } = window.Capacitor?.Plugins || {};
+          if (Filesystem) {
+            const statResult = await Filesystem.stat({ path: record.localImage, directory: 'DATA' });
+            const imageDataUrl = await readLocalImage(record.localImage);
+            if (imageDataUrl) {
+              imgPreview.src = imageDataUrl;
+              imgPreviewWrap.style.display = 'block';
+              imgPreviewStatus.textContent = '已恢复图片';
+              imgPreviewStatus.className = 'img-preview-status';
+            }
           }
+        } catch (e) {
+          console.warn('[恢复] 恢复图片失败:', e.message || e);
         }
-      } catch (e) {
-        console.warn('[恢复] 恢复图片失败:', e.message || e);
       }
-    } else {
-      console.log('[恢复] 无本地图片路径，跳过图片恢复');
     }
 
     // 切换到计算 tab
