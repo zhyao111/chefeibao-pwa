@@ -38,17 +38,13 @@
           top = Math.max(Math.round(window.innerWidth * 0.045), 30);
         }
 
-        // iOS Safari 底部工具栏 (非 standalone / 非全屏)
-        if (isIOS && !isStandalone && bottom <= 0) {
-          // 如果 visualViewport 检测不到底部（常见于 iOS 15+），固定 49px
+        // iOS — 首次检测可靠，但 resize 事件会在工具栏展开/收起时触发
+        // 此时 visualViewport 返回的是缩小后的可见区域，导致 bottom 变成 0
+        // 所以在 iOS 非 standalone 模式下，直接用固定值覆盖检测结果
+        if (isIOS && !isStandalone) {
+          // 底部 Safari 工具栏 49px
           bottom = 49;
         }
-
-        top = Math.max(top, 0);
-        bottom = Math.max(bottom, 0);
-
-        document.documentElement.style.setProperty('--sat', top + 'px');
-        document.documentElement.style.setProperty('--sab', bottom + 'px');
 
         top = Math.max(top, 0);
         bottom = Math.max(bottom, 0);
@@ -69,6 +65,9 @@
       }
 
       function fixAppSize() {
+        // iOS Safari 下不要用 innerHeight 覆盖 .app 高度
+        // 避免和 fixed 定位冲突
+        if (isIOS && !isStandalone) return;
         var h = window.innerHeight;
         var app = document.querySelector('.app');
         if (app) app.style.height = h + 'px';
