@@ -54,7 +54,7 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 60px;
+  bottom: 0;
   max-width: 480px;
   margin: 0 auto;
   display: flex;
@@ -62,12 +62,9 @@ body {
   overflow: hidden;
 }
 
-/* Top safe-area: handled by header padding */
-.app {
-  top: 0;
-}
+/* Top/bottom safe-area handled by JS inline styles */
 .app.safe-bottom {
-  bottom: calc(60px + var(--sab, 0px));
+  bottom: 0;
 }
 
 /* ========== Header ========== */
