@@ -65,6 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultCommercial = $('#resultCommercial');
   const resultNonVehicle = $('#resultNonVehicle');
   const resultAfterTax = $('#resultAfterTax');
+  const labelCompulsory = $('#labelCompulsory');
+  const labelCommercial = $('#labelCommercial');
+  const labelNonVehicle = $('#labelNonVehicle');
+  const labelAfterTax = $('#labelAfterTax');
 
   // Settings / Records
   const emptyStateSettings = $('#emptyStateSettings');
@@ -260,68 +264,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ====== Rate Input Click -> Popup Edit ======
-  const RATE_FIELDS = [
-    { el: compulsoryRate, label: '交强险费率', idx: 0 },
-    { el: commercialRate, label: '商业险费率', idx: 1 },
-    { el: nonVehicleRate, label: '随车非车费率', idx: 2 },
-  ];
-
-  RATE_FIELDS.forEach(({ el, label, idx }) => {
-    el.addEventListener('click', () => {
-      showRateEditDialog(label, idx, el);
+  // ====== Rate Input -> Sync to Quick Rate ======
+  [compulsoryRate, commercialRate, nonVehicleRate].forEach((el) => {
+    el.addEventListener('input', () => {
+      syncRatesToQuick();
     });
   });
 
-  function showRateEditDialog(label, idx, targetEl) {
-    const overlay = document.createElement('div');
-    overlay.className = 'confirm-overlay';
-    overlay.style.zIndex = '1100';
-
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog';
-    dialog.style.maxWidth = '300px';
-
-    let html = '<div style="text-align:left;">';
-    html += `<div style="font-weight:600;margin-bottom:12px;font-size:1rem;">修改${label}</div>`;
-    html += `<input type="number" id="rateEditInput" class="form-input" value="" placeholder="输入费率" step="0.01" min="0" style="width:100%;height:44px;background:var(--input-bg);border:1.5px solid var(--border);border-radius:10px;padding:0 14px;font-size:1rem;outline:none;">`;
-    html += '<div style="display:flex;gap:10px;margin-top:16px;">';
-    html += '<button class="confirm-btn confirm-cancel" id="rateEditCancel" style="flex:1;">取消</button>';
-    html += '<button class="confirm-btn confirm-ok" id="rateEditOk" style="flex:1;">确定</button>';
-    html += '</div>';
-    html += '</div>';
-
-    dialog.innerHTML = html;
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-
-    // 自动聚焦并弹出数字键盘
-    const input = overlay.querySelector('#rateEditInput');
-    setTimeout(() => input.focus(), 100);
-
-    // 确定
-    overlay.querySelector('#rateEditOk').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const val = parseFloat(input.value) || 0;
-      // 更新对应的费率输入框
-      targetEl.value = val;
-      // 同步到快速填写
-      const rates = parseTripleInput(quickRate.value) || [0, 0, 0];
-      rates[idx] = val;
-      quickRate.value = rates.join('/');
-      document.body.removeChild(overlay);
-    });
-
-    // 取消
-    overlay.querySelector('#rateEditCancel').addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.body.removeChild(overlay);
-    });
-
-    // 点击遮罩关闭
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) document.body.removeChild(overlay);
-    });
+  function syncRatesToQuick() {
+    const c = compulsoryRate.value || '0';
+    const m = commercialRate.value || '0';
+    const n = nonVehicleRate.value || '0';
+    quickRate.value = `${c}/${m}/${n}`;
   }
 
   // ====== Calculate ======
@@ -362,6 +316,22 @@ document.addEventListener('DOMContentLoaded', () => {
         { label: '车船税', el: vehicleTax },
       ];
       showMissingFieldsDialog(premiumMissing);
+      return;
+    }
+
+    // 检查有保费但没费率的情况
+    const rateMissing = [];
+    if (newData.compulsoryAmount > 0 && !compulsoryRate.value.trim()) {
+      rateMissing.push({ label: '交强险费率', el: compulsoryRate });
+    }
+    if (newData.commercialAmount > 0 && !commercialRate.value.trim()) {
+      rateMissing.push({ label: '商业险费率', el: commercialRate });
+    }
+    if (newData.nonVehicleAmount > 0 && !nonVehicleRate.value.trim()) {
+      rateMissing.push({ label: '随车非车费率', el: nonVehicleRate });
+    }
+    if (rateMissing.length > 0) {
+      showMissingFieldsDialog(rateMissing);
       return;
     }
 
@@ -522,16 +492,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
       document.body.removeChild(overlay);
-      // 继续计算
+      // 弹确认框
       const newData = getFormData();
-      doCalculate(newData);
+      showConfirmDialog(newData);
     });
 
-    // 跳过：直接计算
+    // 跳过：弹确认框
     overlay.querySelector('#expirySkip').addEventListener('click', (e) => {
       e.stopPropagation();
       document.body.removeChild(overlay);
-      doCalculate(data);
+      showConfirmDialog(data);
     });
   }
 
@@ -552,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     html += '</div>';
 
     // 交强险
-    if (data.compulsoryRate > 0) {
+    if (data.compulsoryAmount > 0) {
       html += '<div class="confirm-card confirm-card-compulsory">';
       html += '<div class="confirm-card-title" style="color:#E8734A;">交强险</div>';
       html += `<div class="confirm-row"><span>保费</span><span class="confirm-value">${data.compulsoryAmount} 元</span></div>`;
@@ -562,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 商业险
-    if (data.commercialRate > 0) {
+    if (data.commercialAmount > 0) {
       html += '<div class="confirm-card confirm-card-commercial">';
       html += '<div class="confirm-card-title" style="color:#E8A04A;">商业险</div>';
       html += `<div class="confirm-row"><span>保费</span><span class="confirm-value">${data.commercialAmount} 元</span></div>`;
@@ -572,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 随车非车
-    if (data.nonVehicleRate > 0) {
+    if (data.nonVehicleAmount > 0) {
       html += '<div class="confirm-card confirm-card-nonvehicle">';
       html += '<div class="confirm-card-title" style="color:#6CB4A8;">随车非车</div>';
       html += `<div class="confirm-row"><span>保费</span><span class="confirm-value">${data.nonVehicleAmount} 元</span></div>`;
@@ -1714,31 +1684,48 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 保存图片到本地
+    console.log('[保存] 检查图片: src类型=' + typeof imgPreview.src + ' 长度=' + (imgPreview.src ? imgPreview.src.length : 0) + ' wrap显示=' + imgPreviewWrap.style.display);
     if (imgPreview.src && imgPreviewWrap.style.display !== 'none') {
       try {
+        console.log('[保存] 开始保存图片, src前50字符:', imgPreview.src.substring(0, 50));
         const localPath = await saveImageToLocal(imgPreview.src, record.id);
         record.localImage = localPath;
+        console.log('[保存] 图片保存结果:', localPath ? '成功 ' + localPath : '跳过（无 Filesystem）');
       } catch (e) {
-        console.warn('图片保存到本地失败:', e);
+        console.warn('[保存] 图片保存到本地失败:', e.message || e);
       }
+    } else {
+      console.log('[保存] 跳过图片保存: src=' + (imgPreview.src ? '有' : '空') + ' wrap=' + imgPreviewWrap.style.display);
     }
 
+    console.log('[保存] record.localImage=' + record.localImage);
     saveRecord(record);
     showToast('已保存到记录');
   });
 
   async function saveImageToLocal(dataUrl, recordId) {
     const { Filesystem } = window.Capacitor?.Plugins || {};
-    if (!Filesystem) return null;
+    if (!Filesystem) {
+      console.warn('[保存] Filesystem 插件不可用，跳过图片保存');
+      return null;
+    }
+    console.log('[保存] Filesystem 可用, dataUrl类型=' + typeof dataUrl + ' 长度=' + (dataUrl ? dataUrl.length : 0));
 
     // 压缩图片
+    console.log('[保存] 开始压缩图片...');
     const compressedBase64 = await compressImage(dataUrl, 1600, 0.8);
+    console.log('[保存] 压缩完成, base64长度=' + (compressedBase64 ? compressedBase64.length : 0));
+    if (!compressedBase64) {
+      console.warn('[保存] 图片压缩结果为空，跳过保存');
+      return null;
+    }
 
     // 确保目录存在
     await Filesystem.mkdir({ path: 'chefeibao_images', directory: 'DATA', recursive: true });
 
     const fileName = `img_${recordId}.jpg`;
     const filePath = `chefeibao_images/${fileName}`;
+    console.log('[保存] 写入文件: ' + filePath);
 
     await Filesystem.writeFile({
       path: filePath,
@@ -1747,35 +1734,53 @@ document.addEventListener('DOMContentLoaded', () => {
       encoding: 'base64',
     });
 
+    console.log('[保存] 文件写入成功');
     return filePath;
   }
 
   function compressImage(dataUrl, maxSize, quality) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        console.log('[压缩] 图片加载成功, 尺寸=' + img.naturalWidth + 'x' + img.naturalHeight);
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
 
-        let w = img.naturalWidth;
-        let h = img.naturalHeight;
+          let w = img.naturalWidth;
+          let h = img.naturalHeight;
 
-        if (w > maxSize || h > maxSize) {
-          if (w > h) {
-            h = Math.round(h * maxSize / w);
-            w = maxSize;
-          } else {
-            w = Math.round(w * maxSize / h);
-            h = maxSize;
+          if (w > maxSize || h > maxSize) {
+            if (w > h) {
+              h = Math.round(h * maxSize / w);
+              w = maxSize;
+            } else {
+              w = Math.round(w * maxSize / h);
+              h = maxSize;
+            }
           }
+
+          canvas.width = w;
+          canvas.height = h;
+          ctx.drawImage(img, 0, 0, w, h);
+          console.log('[压缩] Canvas尺寸=' + w + 'x' + h);
+
+          const compressed = canvas.toDataURL('image/jpeg', quality);
+          const base64 = compressed.split(',')[1] || '';
+          console.log('[压缩] 压缩完成, base64长度=' + base64.length);
+          if (!base64) {
+            reject(new Error('图片压缩后数据为空'));
+            return;
+          }
+          resolve(base64);
+        } catch (e) {
+          console.error('[压缩] Canvas操作失败:', e.message || e);
+          reject(new Error('图片压缩失败: ' + (e.message || e)));
         }
-
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(img, 0, 0, w, h);
-
-        const compressed = canvas.toDataURL('image/jpeg', quality);
-        resolve(compressed.split(',')[1] || '');
+      };
+      img.onerror = (e) => {
+        console.error('[压缩] 图片加载失败');
+        reject(new Error('图片加载失败'));
       };
       img.src = dataUrl;
     });
@@ -1796,11 +1801,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!filePath) return null;
     try {
       const { Filesystem } = window.Capacitor?.Plugins || {};
-      if (!Filesystem) return null;
+      if (!Filesystem) {
+        console.warn('[读取] Filesystem 不可用');
+        return null;
+      }
+      console.log('[读取] 读取文件: ' + filePath);
       const result = await Filesystem.readFile({ path: filePath, directory: 'DATA', encoding: 'base64' });
+      console.log('[读取] 读取成功, data长度=' + (result.data ? result.data.length : 0));
       return `data:image/jpeg;base64,${result.data}`;
     } catch (e) {
-      console.warn('读取本地图片失败:', e);
+      console.warn('[读取] 读取本地图片失败:', e.message || e);
       return null;
     }
   }
@@ -1930,10 +1940,10 @@ document.addEventListener('DOMContentLoaded', () => {
       plate: plateNumber.value.trim(),
       compulsoryAmount: parseFloat(compulsoryAmount.value) || 0,
       compulsoryRate: parseFloat(compulsoryRate.value) || 0,
-      compulsoryExpiry: buildExpiryStr(compulsoryExpiryYear, compulsoryExpiryMonth, compulsoryExpiryDay) || ocrExpiry.compulsory,
+      compulsoryExpiry: buildExpiryStr(compulsoryExpiryYear, compulsoryExpiryMonth, compulsoryExpiryDay),
       commercialAmount: parseFloat(commercialAmount.value) || 0,
       commercialRate: parseFloat(commercialRate.value) || 0,
-      commercialExpiry: buildExpiryStr(commercialExpiryYear, commercialExpiryMonth, commercialExpiryDay) || ocrExpiry.commercial,
+      commercialExpiry: buildExpiryStr(commercialExpiryYear, commercialExpiryMonth, commercialExpiryDay),
       nonVehicleAmount: parseFloat(nonVehicleAmount.value) || 0,
       nonVehicleRate: parseFloat(nonVehicleRate.value) || 0,
       nonVehicleExpiry: ocrExpiry.nonVehicle,
@@ -1942,11 +1952,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function calculate(data) {
-    const compulsoryFee = round2(data.compulsoryAmount / 1.06 * data.compulsoryRate / 100);
-    const commercialFee = round2(data.commercialAmount / 1.06 * data.commercialRate / 100);
-    const nonVehicleFee = round2(data.nonVehicleAmount / 1.06 * data.nonVehicleRate / 100);
-    const total = round2(compulsoryFee + commercialFee + nonVehicleFee);
-    const afterTax = total;
+    const allRatesZero = data.compulsoryRate === 0 && data.commercialRate === 0 && data.nonVehicleRate === 0;
+
+    let compulsoryFee, commercialFee, nonVehicleFee, total, afterTax;
+    const premiumTotal = round2(data.compulsoryAmount + data.commercialAmount + data.nonVehicleAmount + data.vehicleTax);
+
+    if (allRatesZero) {
+      // 费率全为0：直接显示保费金额
+      compulsoryFee = round2(data.compulsoryAmount);
+      commercialFee = round2(data.commercialAmount);
+      nonVehicleFee = round2(data.nonVehicleAmount);
+      total = premiumTotal;
+      afterTax = premiumTotal;
+    } else {
+      // 有费率：计算手续费
+      compulsoryFee = round2(data.compulsoryAmount / 1.06 * data.compulsoryRate / 100);
+      commercialFee = round2(data.commercialAmount / 1.06 * data.commercialRate / 100);
+      nonVehicleFee = round2(data.nonVehicleAmount / 1.06 * data.nonVehicleRate / 100);
+      total = round2(compulsoryFee + commercialFee + nonVehicleFee);
+      afterTax = total;
+    }
 
     return {
       compulsoryFee: round2(compulsoryFee),
@@ -1954,6 +1979,8 @@ document.addEventListener('DOMContentLoaded', () => {
       nonVehicleFee: round2(nonVehicleFee),
       total: round2(total),
       afterTax: round2(afterTax),
+      allRatesZero,
+      premiumTotal,
     };
   }
 
@@ -1962,10 +1989,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function displayResults(results) {
-    resultCompulsory.textContent = `¥ ${results.compulsoryFee.toFixed(2)}`;
-    resultCommercial.textContent = `¥ ${results.commercialFee.toFixed(2)}`;
-    resultNonVehicle.textContent = `¥ ${results.nonVehicleFee.toFixed(2)}`;
-    resultAfterTax.textContent = `¥ ${results.afterTax.toFixed(2)}`;
+    if (results.allRatesZero) {
+      // 费率全为0：显示保费金额
+      labelCompulsory.textContent = '交强险保费';
+      labelCommercial.textContent = '商业险保费';
+      labelNonVehicle.textContent = '随车非车保费';
+      labelAfterTax.textContent = '保费合计';
+
+      // 用 fee 字段传递保费金额
+      resultCompulsory.textContent = `¥ ${results.compulsoryFee.toFixed(2)}`;
+      resultCommercial.textContent = `¥ ${results.commercialFee.toFixed(2)}`;
+      resultNonVehicle.textContent = `¥ ${results.nonVehicleFee.toFixed(2)}`;
+      resultAfterTax.textContent = `¥ ${results.afterTax.toFixed(2)}`;
+    } else {
+      // 有费率：显示手续费
+      labelCompulsory.textContent = '交强险手续费';
+      labelCommercial.textContent = '商业险手续费';
+      labelNonVehicle.textContent = '随车非车保费手续费';
+      labelAfterTax.textContent = '税后手续费';
+
+      resultCompulsory.textContent = `¥ ${results.compulsoryFee.toFixed(2)}`;
+      resultCommercial.textContent = `¥ ${results.commercialFee.toFixed(2)}`;
+      resultNonVehicle.textContent = `¥ ${results.nonVehicleFee.toFixed(2)}`;
+      resultAfterTax.textContent = `¥ ${results.afterTax.toFixed(2)}`;
+    }
   }
 
   function formatMoney(n) {
@@ -1978,15 +2025,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (data.plate) lines.push(`车牌号：${data.plate}`);
 
     let premium = 0;
-    if (data.compulsoryAmount > 0 && data.compulsoryRate > 0) {
+    if (data.compulsoryAmount > 0) {
       premium += data.compulsoryAmount;
-      lines.push(`交强险保费：${data.compulsoryAmount}元，到期时间：${data.compulsoryExpiry || '未知'}`);
+      if (results.allRatesZero) {
+        lines.push(`交强险保费：${data.compulsoryAmount}元，到期时间：${data.compulsoryExpiry || '未知'}`);
+      } else if (data.compulsoryRate > 0) {
+        lines.push(`交强险保费：${data.compulsoryAmount}元，到期时间：${data.compulsoryExpiry || '未知'}`);
+      }
     }
-    if (data.commercialAmount > 0 && data.commercialRate > 0) {
+    if (data.commercialAmount > 0) {
       premium += data.commercialAmount;
-      lines.push(`商业险保费：${data.commercialAmount}元，到期时间：${data.commercialExpiry || '未知'}`);
+      if (results.allRatesZero) {
+        lines.push(`商业险保费：${data.commercialAmount}元，到期时间：${data.commercialExpiry || '未知'}`);
+      } else if (data.commercialRate > 0) {
+        lines.push(`商业险保费：${data.commercialAmount}元，到期时间：${data.commercialExpiry || '未知'}`);
+      }
     }
-    if (data.nonVehicleAmount > 0 && data.nonVehicleRate > 0) {
+    if (data.nonVehicleAmount > 0) {
       premium += data.nonVehicleAmount;
       lines.push(`随车非车保费：${data.nonVehicleAmount}元`);
     }
@@ -1998,8 +2053,12 @@ document.addEventListener('DOMContentLoaded', () => {
     premium = round2(premium);
     if (premium > 0) lines.push(`保费合计：${premium}元`);
     if (results.afterTax > 0) {
-      lines.push(`费用：${formatMoney(results.afterTax)}`);
-      lines.push(`实付为：${formatMoney(premium - results.afterTax)}`);
+      if (results.allRatesZero) {
+        lines.push(`实付为：${premium.toFixed(2)}元`);
+      } else {
+        lines.push(`费用：${results.afterTax.toFixed(2)}元`);
+        lines.push(`实付为：${(premium - results.afterTax).toFixed(2)}元`);
+      }
     }
     return lines.join('\n');
   }
@@ -2165,14 +2224,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 恢复图片
+    console.log('[恢复] record.localImage=' + record.localImage);
     if (record.localImage) {
-      const imageDataUrl = await readLocalImage(record.localImage);
-      if (imageDataUrl) {
-        imgPreview.src = imageDataUrl;
-        imgPreviewWrap.style.display = 'block';
-        imgPreviewStatus.textContent = '已恢复图片';
-        imgPreviewStatus.className = 'img-preview-status';
+      try {
+        const { Filesystem } = window.Capacitor?.Plugins || {};
+        console.log('[恢复] Filesystem 可用=' + !!Filesystem);
+        if (Filesystem) {
+          // 检查文件是否存在
+          console.log('[恢复] 检查文件: ' + record.localImage);
+          const statResult = await Filesystem.stat({ path: record.localImage, directory: 'DATA' });
+          console.log('[恢复] 文件存在, 大小=' + (statResult.size || '未知'));
+          const imageDataUrl = await readLocalImage(record.localImage);
+          console.log('[恢复] 读取结果: ' + (imageDataUrl ? '成功, 长度=' + imageDataUrl.length : '失败'));
+          if (imageDataUrl) {
+            imgPreview.src = imageDataUrl;
+            imgPreviewWrap.style.display = 'block';
+            imgPreviewStatus.textContent = '已恢复图片';
+            imgPreviewStatus.className = 'img-preview-status';
+            console.log('[恢复] 图片已设置到 imgPreview');
+          }
+        }
+      } catch (e) {
+        console.warn('[恢复] 恢复图片失败:', e.message || e);
       }
+    } else {
+      console.log('[恢复] 无本地图片路径，跳过图片恢复');
     }
 
     // 切换到计算 tab
