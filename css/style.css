@@ -60,6 +60,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 100dvh;
 }
 
 /* Top/bottom safe-area handled by JS inline styles */
@@ -95,20 +96,19 @@ body {
 }
 
 .tab-content.active {
-  display: flex;
-  flex-direction: column;
+  display: block;
   min-height: 0;
 }
 
-/* 滚动容器占满 tab-content */
+/* 滚动容器占满 tab-content（用绝对定位，不被 flex 拉伸） */
 .scroll-area {
-  flex: 1;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0 16px 0;
+  padding: 0 16px 16px;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
-  min-height: 0;
   will-change: scroll-position;
 }
 

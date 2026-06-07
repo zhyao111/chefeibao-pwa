@@ -8,23 +8,18 @@
   <script>
     (function() {
       var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      var isStandalone = window.navigator.standalone || false;
 
       function detectSafeArea() {
         var top = 0, bottom = 0;
 
-        // 方法1: visualViewport API — iOS Safari 最可靠
         if (window.visualViewport) {
           var offset = window.visualViewport.offsetTop || 0;
           var vh = window.visualViewport.height || window.innerHeight;
           var diff = window.innerHeight - vh;
-          // offsetTop > 0 表示有状态栏在内容上方
           if (offset > 0) top = offset;
-          // diff > offset 表示底部也有非内容区域（工具栏或导航栏）
           if (diff > offset) bottom = diff - offset;
         }
 
-        // 方法2: screen 对比兜底
         if (top <= 0 && bottom <= 0) {
           var screenDiff = window.screen.height - window.innerHeight;
           if (screenDiff > 40) {
@@ -33,15 +28,7 @@
           }
         }
 
-        // 方法3: iOS 状态栏兜底（在前两种都检测不到时）
-        if (top <= 0) {
-          top = Math.max(Math.round(window.innerWidth * 0.045), 30);
-        }
-
-        // iOS PWA standalone 模式：bottom 由 JS 全权控制
-        // iOS Safari 浏览器模式：Safari 工具栏覆盖在内容上，不需要底部间距
-        // 否则导航栏上方会多出一块空白区
-        if (isIOS && !isStandalone) {
+        if (isIOS && !window.navigator.standalone) {
           bottom = 0;
         }
 
@@ -50,26 +37,12 @@
 
         document.documentElement.style.setProperty('--sat', top + 'px');
         document.documentElement.style.setProperty('--sab', bottom + 'px');
-
-        // 底部导航栏安全区域
-        var nav = document.querySelector('.bottom-nav');
-        if (nav) {
-          nav.style.paddingBottom = bottom + 'px';
-        }
-      }
-
-      function fixAppSize() {
-        // iOS Safari 地址栏动态调整时，CSS fixed+bottom:0 已正确处理
-        // 不需要用 JS 设固定高度（会破坏 flex 布局）
       }
 
       detectSafeArea();
-      fixAppSize();
-      setTimeout(function(){ detectSafeArea(); fixAppSize(); }, 300);
-      setTimeout(function(){ detectSafeArea(); fixAppSize(); }, 800);
-      window.addEventListener('resize', function(){ detectSafeArea(); fixAppSize(); });
+      window.addEventListener('resize', detectSafeArea);
       window.addEventListener('orientationchange', function() {
-        setTimeout(function(){ detectSafeArea(); fixAppSize(); }, 300);
+        setTimeout(detectSafeArea, 300);
       });
     })();
   </script>
