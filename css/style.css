@@ -112,7 +112,7 @@ body {
 }
 /* Fixed bottom nav space */
 .scroll-area {
-  padding-bottom: 120px;
+  padding-bottom: calc(60px + var(--sab, 0px) + 12px);
 }
 
 /* ========== Cards ========== */
