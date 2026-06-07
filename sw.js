@@ -1,10 +1,15 @@
-const CACHE_NAME = 'chefeibao-v7';
+const CACHE_NAME = 'chefeibao-v8';
 
 // 核心资源 — install 失败也能降级，不影响 SW 激活
 const CORE_ASSETS = [
   './',
   './index.html',
   './css/style.css',
+  './js/utils.js',
+  './js/storage.js',
+  './js/calculator.js',
+  './js/providers.js',
+  './js/ocr.js',
   './js/app.js',
   './manifest.json',
   './icons/icon-192.svg',
