@@ -59,18 +59,8 @@
       }
 
       function fixAppSize() {
-        // iOS Safari: 用 visualViewport 高度修正 .app 高度
-        // 避免 Safari 工具栏展开时底部出现白边
-        if (isIOS && !isStandalone && window.visualViewport) {
-          var app = document.querySelector('.app');
-          if (app) {
-            app.style.height = window.visualViewport.height + 'px';
-          }
-          return;
-        }
-        var h = window.innerHeight;
-        var app = document.querySelector('.app');
-        if (app) app.style.height = h + 'px';
+        // iOS Safari 地址栏动态调整时，CSS fixed+bottom:0 已正确处理
+        // 不需要用 JS 设固定高度（会破坏 flex 布局）
       }
 
       detectSafeArea();
