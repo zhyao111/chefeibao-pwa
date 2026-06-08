@@ -367,6 +367,25 @@
             </div>
           </div>
 
+          <!-- 版本信息 -->
+          <div class="settings-font-size" style="justify-content:center;padding:8px 0;border:none;">
+            <span style="font-size:11px;color:#bbb;" id="versionDisplay">加载中...</span>
+          </div>
+
+          <script>
+            var verEl = document.getElementById('versionDisplay');
+            if (verEl) verEl.textContent = '版本: 2026-06-08a | 冲突弹窗已修复';
+          </script>
+
+          <script>
+            // 显示版本号，方便区分新旧版本
+            var verEl = document.getElementById('versionDisplay');
+            if (verEl) {
+              var v = localStorage.getItem('pwa_version') || '0';
+              verEl.textContent = '版本: v' + v + ' | 2026-06-08';
+            }
+          </script>
+
           <!-- 字体大小设置 -->
           <div class="settings-font-size">
             <div class="settings-font-label">
