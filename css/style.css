@@ -2115,6 +2115,30 @@ input[type="number"] {
 .card:nth-child(9) { animation-delay: 0.16s; }
 
 /* ========== Conflict Dialog ========== */
+.conflict-dialog {
+  background: var(--card-bg);
+  border-radius: 16px;
+  width: min(340px, 92vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 20px 18px 14px;
+  animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-sizing: border-box;
+}
+.conflict-dialog-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  margin: 0 -4px;
+  padding: 0 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.conflict-dialog-footer {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
 .conflict-option {
   display: flex;
   justify-content: space-between;
@@ -2244,7 +2268,8 @@ input[type="number"] {
   .provider-card,
   .failover-queue-item,
   .modal-sheet,
-  .confirm-dialog {
+  .confirm-dialog,
+  .conflict-dialog {
     background: var(--card-bg);
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   }
@@ -2344,7 +2369,8 @@ input[type="number"] {
     border-color: var(--primary) !important;
   }
 
-  .confirm-dialog {
+  .confirm-dialog,
+  .conflict-dialog {
     background: var(--card-bg) !important;
     color: var(--text) !important;
   }
