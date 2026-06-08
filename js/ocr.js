@@ -244,15 +244,17 @@ function showConflictDialog(conflictFields, succeeded) {
 
     var dialog = document.createElement('div');
     dialog.className = 'confirm-dialog';
-    dialog.style.maxWidth = '360px';
-    dialog.style.maxHeight = '80vh';
-    dialog.style.overflow = 'auto';
+    dialog.style.cssText = 'max-width:360px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;padding:20px 18px 14px;';
 
     var providerNames = succeeded.map(function(r) { return r.providerName; });
 
-    var html = '<div style="text-align:left;font-size:0.85rem;">';
+    var html = '<div style="flex-shrink:0;text-align:left;font-size:0.85rem;">';
     html += '<div style="font-weight:600;margin-bottom:10px;color:#E74C3C;">⚠️ 以下字段两个模型识别结果不一致</div>';
-    html += '<div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:12px;">请点击您认为正确的值</div>';
+    html += '<div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:8px;">请点击您认为正确的值</div>';
+    html += '</div>';
+
+    // 可滚动的冲突字段区域
+    html += '<div style="flex:1;overflow-y:auto;min-height:0;margin:0 -4px;padding:0 4px;">';
 
     conflictFields.forEach(function(f, idx) {
       var label = FIELD_LABELS[f] || f;
@@ -272,20 +274,22 @@ function showConflictDialog(conflictFields, succeeded) {
       html += '</div>';
     });
 
-    html += '</div>';
+    html += '</div>'; // /滚动区域
 
+    // 底部固定按钮区
+    html += '<div style="flex-shrink:0;">';
     var hasImg = document.getElementById('imgPreview').src && document.getElementById('imgPreviewWrap').style.display !== 'none';
     if (hasImg) {
-      html += '<div id="conflictViewImg" class="conflict-view-img-btn">';
+      html += '<div id="conflictViewImg" class="conflict-view-img-btn" style="margin:8px 0 10px;">';
       html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align:-2px;"><rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" stroke-width="1.6"/><circle cx="8.5" cy="9.5" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M2 16l5-5 4 4 3-3 6 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       html += '查看图片';
       html += '</div>';
     }
-
-    html += '<div style="display:flex;gap:10px;margin-top:14px;">';
+    html += '<div style="display:flex;gap:10px;">';
     html += '<button class="confirm-btn confirm-cancel" id="conflictCancelAll" style="flex:1;">全部跳过</button>';
     html += '<button class="confirm-btn confirm-ok" id="conflictConfirm" style="flex:1;">确认选择</button>';
     html += '</div>';
+    html += '</div>'; // /底部固定按钮区
 
     dialog.innerHTML = html;
     overlay.appendChild(dialog);
